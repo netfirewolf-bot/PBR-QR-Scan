@@ -1,0 +1,660 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>QR Сканер СМР</title>
+    <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, Arial, sans-serif;
+            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+            color: #fff;
+            min-height: 100vh;
+            padding: 10px;
+            padding-bottom: 80px;
+        }
+        .header {
+            text-align: center;
+            padding: 12px;
+            background: rgba(255,255,255,0.1);
+            border-radius: 12px;
+            margin-bottom: 10px;
+        }
+        .header h1 { font-size: 20px; margin-bottom: 3px; }
+        .header p { font-size: 12px; opacity: 0.9; }
+        .status-bar {
+            display: flex;
+            justify-content: space-around;
+            background: rgba(255,255,255,0.1);
+            padding: 8px;
+            border-radius: 10px;
+            margin-bottom: 10px;
+            font-size: 11px;
+        }
+        .status-item { text-align: center; }
+        .status-value { font-size: 16px; font-weight: bold; }
+        .online { color: #4CAF50; }
+        .offline { color: #f44336; }
+        .sync-panel {
+            background: rgba(255,255,255,0.95);
+            color: #333;
+            padding: 10px;
+            border-radius: 10px;
+            margin-bottom: 10px;
+        }
+        .sync-panel h3 { color: #2196F3; margin-bottom: 8px; font-size: 14px; }
+        .pending-count {
+            font-size: 20px;
+            font-weight: bold;
+            color: #FF9800;
+            text-align: center;
+            margin: 5px 0;
+        }
+        .btn {
+            width: 100%;
+            padding: 12px;
+            border: none;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: bold;
+            cursor: pointer;
+            margin: 4px 0;
+        }
+        .btn-primary { background: #2196F3; color: white; }
+        .btn-success { background: #4CAF50; color: white; }
+        .btn-danger { background: #f44336; color: white; }
+        .btn:active { transform: scale(0.98); }
+        .scanner-container {
+            background: #000;
+            border-radius: 10px;
+            overflow: hidden;
+            margin-bottom: 10px;
+            min-height: 250px;
+        }
+        #reader { width: 100%; }
+        .item-info {
+            background: rgba(255,255,255,0.95);
+            color: #333;
+            padding: 12px;
+            border-radius: 10px;
+            margin-bottom: 10px;
+            display: none;
+        }
+        .item-info.show { display: block; }
+        .item-info h2 { color: #2196F3; margin-bottom: 8px; font-size: 16px; }
+        .info-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 6px 0;
+            border-bottom: 1px solid #eee;
+            font-size: 13px;
+        }
+        .info-label { font-weight: bold; color: #666; }
+        .info-value { color: #333; text-align: right; max-width: 60%; }
+        .info-value.highlight { color: #4CAF50; font-weight: bold; font-size: 15px; }
+        .info-value.difference { color: #f44336; font-weight: bold; }
+        .edit-section {
+            margin-top: 10px;
+            padding-top: 10px;
+            border-top: 2px solid #2196F3;
+        }
+        .input-group { margin-bottom: 8px; }
+        .input-group label { 
+            display: block; 
+            margin-bottom: 3px; 
+            font-weight: bold; 
+            color: #666;
+            font-size: 12px;
+        }
+        .input-group input, .input-group textarea {
+            width: 100%;
+            padding: 10px;
+            border: 2px solid #ddd;
+            border-radius: 6px;
+            font-size: 14px;
+        }
+        .history {
+            background: rgba(255,255,255,0.95);
+            color: #333;
+            padding: 10px;
+            border-radius: 10px;
+            max-height: 200px;
+            overflow-y: auto;
+        }
+        .history h3 { color: #2196F3; margin-bottom: 8px; font-size: 14px; }
+        .history-item {
+            padding: 6px;
+            border-bottom: 1px solid #eee;
+            font-size: 12px;
+        }
+        .notification {
+            position: fixed;
+            top: 10px;
+            left: 50%;
+            transform: translateX(-50%);
+            padding: 12px 20px;
+            border-radius: 8px;
+            color: white;
+            font-weight: bold;
+            z-index: 1000;
+            display: none;
+            font-size: 13px;
+            max-width: 90%;
+            text-align: center;
+        }
+        .notification.show { display: block; animation: fadeIn 0.3s; }
+        .notification.success { background: #4CAF50; }
+        .notification.error { background: #f44336; }
+        .notification.info { background: #2196F3; }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translate(-50%, -20px); }
+            to { opacity: 1; transform: translate(-50%, 0); }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>📱 QR Сканер СМР</h1>
+        <p>Оффлайн режим с Google Sheets</p>
+    </div>
+    
+    <div class="status-bar">
+        <div class="status-item">
+            <div class="status-value" id="connectionStatus">🔍</div>
+            <div>Сеть</div>
+        </div>
+        <div class="status-item">
+            <div class="status-value" id="dbStatus">❌</div>
+            <div>База</div>
+        </div>
+        <div class="status-item">
+            <div class="status-value" id="pendingCount">0</div>
+            <div>Ожидают</div>
+        </div>
+        <div class="status-item">
+            <div class="status-value" id="scanCount">0</div>
+            <div>Сканирований</div>
+        </div>
+    </div>
+    
+    <div class="sync-panel">
+        <h3> Синхронизация</h3>
+        <button class="btn btn-primary" onclick="downloadDatabase()">📥 Загрузить базу с сервера</button>
+        <div class="pending-count" id="pendingDisplay">0 изменений ожидают отправки</div>
+        <button class="btn btn-success" onclick="syncNow()">📤 Отправить изменения</button>
+    </div>
+    
+    <div class="scanner-container">
+        <div id="reader"></div>
+    </div>
+    
+    <div style="display: flex; gap: 8px; margin-bottom: 10px;">
+        <button class="btn btn-success" onclick="startScanner()" style="flex:1;">▶️ Старт</button>
+        <button class="btn btn-danger" onclick="stopScanner()" style="flex:1;">️ Стоп</button>
+    </div>
+    
+    <div class="item-info" id="itemInfo">
+        <h2>📦 Информация о позиции</h2>
+        <div class="info-row">
+            <span class="info-label">Бух. №:</span>
+            <span class="info-value" id="infoBukh">-</span>
+        </div>
+        <div class="info-row">
+            <span class="info-label">Наименование:</span>
+            <span class="info-value" id="infoName">-</span>
+        </div>
+        <div class="info-row">
+            <span class="info-label">Ед. изм.:</span>
+            <span class="info-value" id="infoUnit">-</span>
+        </div>
+        <div class="info-row">
+            <span class="info-label">Остаток:</span>
+            <span class="info-value" id="infoBalance">-</span>
+        </div>
+        <div class="info-row">
+            <span class="info-label">Факт:</span>
+            <span class="info-value highlight" id="infoFact">-</span>
+        </div>
+        <div class="info-row">
+            <span class="info-label">Разница:</span>
+            <span class="info-value difference" id="infoDiff">-</span>
+        </div>
+        <div class="info-row">
+            <span class="info-label">Контейнер:</span>
+            <span class="info-value" id="infoContainer">-</span>
+        </div>
+        <div class="info-row">
+            <span class="info-label">Полка/место:</span>
+            <span class="info-value" id="infoShelf">-</span>
+        </div>
+        <div class="info-row">
+            <span class="info-label">Штрихкод:</span>
+            <span class="info-value" id="infoBarcode">-</span>
+        </div>
+        
+        <div class="edit-section">
+            <h3>✏️ Редактирование</h3>
+            <div class="input-group">
+                <label>Фактическое количество:</label>
+                <input type="number" id="editFact" step="0.001" placeholder="Введите факт">
+            </div>
+            <div class="input-group">
+                <label>Примечание:</label>
+                <textarea id="editNote" rows="2" placeholder="Дополнительная информация"></textarea>
+            </div>
+            <div class="input-group">
+                <label>Контейнер/площадка:</label>
+                <input type="text" id="editContainer" placeholder="Контейнер">
+            </div>
+            <div class="input-group">
+                <label>Полка/место:</label>
+                <input type="text" id="editShelf" placeholder="Полка">
+            </div>
+            <button class="btn btn-success" onclick="saveData()">💾 Сохранить (оффлайн)</button>
+        </div>
+    </div>
+    
+    <div class="history">
+        <h3>📋 История сканирования</h3>
+        <div id="historyList"></div>
+    </div>
+    
+    <div class="notification" id="notification"></div>
+
+    <script>
+        // ============================================
+        // ⚠️ ВСТАВЬТЕ СЮДА ВАШ URL APPS SCRIPT
+        // ============================================
+        const API_URL = 'https://script.google.com/macros/s/AKfycbwUPkjafELIq9NYZvz5_LqdEmNL14LpXPzulVt-QLBPa3mgSQ110hKZY0jmVIFrz-67kg/edit?pli/exec';
+        
+        const DB_NAME = 'SMR_QR_DB';
+        let db = null;
+        let currentItem = null;
+        let history = [];
+        let isOnline = navigator.onLine;
+        let html5QrCode = null;
+        let totalScans = 0;
+
+        // Инициализация IndexedDB
+        async function initDB() {
+            return new Promise((resolve, reject) => {
+                const request = indexedDB.open(DB_NAME, 1);
+                request.onerror = () => reject(request.error);
+                request.onsuccess = () => {
+                    db = request.result;
+                    updateDBStatus(true);
+                    resolve(db);
+                };
+                request.onupgradeneeded = (event) => {
+                    const database = event.target.result;
+                    if (!database.objectStoreNames.contains('items')) {
+                        const store = database.createObjectStore('items', { keyPath: 'bukh' });
+                        store.createIndex('barcode', 'barcode', { unique: false });
+                    }
+                    if (!database.objectStoreNames.contains('pending_changes')) {
+                        const store = database.createObjectStore('pending_changes', { 
+                            keyPath: 'id', autoIncrement: true 
+                        });
+                        store.createIndex('synced', 'synced', { unique: false });
+                    }
+                };
+            });
+        }
+
+        // Загрузка базы с Google Sheets
+        async function downloadDatabase() {
+            showNotification(' Загрузка базы данных...', 'info');
+            
+            try {
+                const response = await fetch(API_URL + '?action=getItems');
+                const data = await response.json();
+                
+                if (data.success) {
+                    const transaction = db.transaction(['items'], 'readwrite');
+                    const store = transaction.objectStore('items');
+                    store.clear();
+                    
+                    data.items.forEach(item => {
+                        store.put(item);
+                    });
+                    
+                    transaction.oncomplete = () => {
+                        updateDBStatus(true);
+                        showNotification(`✅ Загружено ${data.items.length} позиций`, 'success');
+                        updatePendingCount();
+                    };
+                } else {
+                    showNotification('❌ ' + (data.error || 'Ошибка загрузки'), 'error');
+                }
+            } catch (err) {
+                showNotification('❌ Ошибка сети: ' + err.message, 'error');
+            }
+        }
+
+        // Поиск товара по Бух.№ или Штрихкоду
+        async function findItem(code) {
+            return new Promise((resolve) => {
+                const transaction = db.transaction(['items'], 'readonly');
+                const store = transaction.objectStore('items');
+                
+                // Пробуем по Бух. №
+                let request = store.get(code);
+                request.onsuccess = () => {
+                    if (request.result) {
+                        resolve(request.result);
+                        return;
+                    }
+                    
+                    // Пробуем по Штрихкоду
+                    const index = store.index('barcode');
+                    const request2 = index.get(code);
+                    request2.onsuccess = () => {
+                        if (request2.result) {
+                            resolve(request2.result);
+                            return;
+                        }
+                        
+                        // Пробуем короткий код (убираем ведущие нули)
+                        const shortCode = code.replace(/^0+/, '');
+                        const request3 = store.get(shortCode);
+                        request3.onsuccess = () => {
+                            if (request3.result) {
+                                resolve(request3.result);
+                                return;
+                            }
+                            const request4 = index.get(shortCode);
+                            request4.onsuccess = () => resolve(request4.result || null);
+                            request4.onerror = () => resolve(null);
+                        };
+                        request3.onerror = () => resolve(null);
+                    };
+                    request2.onerror = () => resolve(null);
+                };
+                request.onerror = () => resolve(null);
+            });
+        }
+
+        // Сохранение изменения в очередь
+        async function savePendingChange(change) {
+            return new Promise((resolve, reject) => {
+                const transaction = db.transaction(['pending_changes'], 'readwrite');
+                const store = transaction.objectStore('pending_changes');
+                change.timestamp = new Date().toISOString();
+                change.synced = false;
+                const request = store.add(change);
+                request.onsuccess = () => {
+                    updatePendingCount();
+                    resolve(request.result);
+                };
+                request.onerror = () => reject(request.error);
+            });
+        }
+
+        // Получение всех несинхронизированных
+        async function getPendingChanges() {
+            return new Promise((resolve, reject) => {
+                const transaction = db.transaction(['pending_changes'], 'readonly');
+                const store = transaction.objectStore('pending_changes');
+                const index = store.index('synced');
+                const request = index.getAll(false);
+                request.onsuccess = () => resolve(request.result);
+                request.onerror = () => reject(request.error);
+            });
+        }
+
+        // Отметка как отправленных
+        async function markChangesSynced(ids) {
+            return new Promise((resolve) => {
+                const transaction = db.transaction(['pending_changes'], 'readwrite');
+                const store = transaction.objectStore('pending_changes');
+                ids.forEach(id => {
+                    const request = store.get(id);
+                    request.onsuccess = () => {
+                        const change = request.result;
+                        if (change) {
+                            change.synced = true;
+                            store.put(change);
+                        }
+                    };
+                });
+                transaction.oncomplete = () => {
+                    updatePendingCount();
+                    resolve();
+                };
+            });
+        }
+
+        // Синхронизация с Google Sheets
+        async function syncNow() {
+            if (!isOnline) {
+                showNotification('🔴 Нет подключения к сети', 'error');
+                return;
+            }
+            
+            showNotification('⏳ Отправка изменений...', 'info');
+            
+            try {
+                const changes = await getPendingChanges();
+                
+                if (changes.length === 0) {
+                    showNotification('✅ Нет изменений для отправки', 'success');
+                    return;
+                }
+                
+                const response = await fetch(API_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ 
+                        action: 'batchUpdate', 
+                        updates: changes 
+                    })
+                });
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    const syncedIds = changes.map(c => c.id);
+                    await markChangesSynced(syncedIds);
+                    showNotification(`✅ Отправлено ${changes.length} изменений`, 'success');
+                } else {
+                    showNotification('❌ Ошибка: ' + (result.error || 'Неизвестная ошибка'), 'error');
+                }
+            } catch (err) {
+                showNotification('❌ Ошибка сети: ' + err.message, 'error');
+            }
+        }
+
+        // Сканер QR
+        function startScanner() {
+            if (html5QrCode && html5QrCode.isScanning) {
+                showNotification('⚠️ Сканер уже запущен', 'info');
+                return;
+            }
+            
+            html5QrCode = new Html5Qrcode("reader");
+            
+            html5QrCode.start(
+                { facingMode: "environment" },
+                { fps: 10, qrbox: { width: 250, height: 250 } },
+                onScanSuccess,
+                () => {}
+            ).catch(err => {
+                showNotification('❌ Ошибка камеры: ' + err, 'error');
+            });
+        }
+
+        function stopScanner() {
+            if (html5QrCode && html5QrCode.isScanning) {
+                html5QrCode.stop().then(() => {
+                    html5QrCode.clear();
+                });
+            }
+        }
+
+        async function onScanSuccess(decodedText) {
+            totalScans++;
+            document.getElementById('scanCount').textContent = totalScans;
+            
+            if (navigator.vibrate) navigator.vibrate(100);
+            
+            const code = decodedText.trim();
+            showNotification(`🔍 Поиск: ${code}`, 'info');
+            
+            const item = await findItem(code);
+            
+            if (item) {
+                currentItem = item;
+                displayItemInfo(item);
+                addToHistory(code, item.name);
+                showNotification(`✅ Найдено: ${item.name.substring(0, 30)}...`, 'success');
+            } else {
+                showNotification(`⚠️ Товар не найден: ${code}`, 'error');
+            }
+        }
+
+        // Отображение информации
+        function displayItemInfo(item) {
+            document.getElementById('infoBukh').textContent = item.bukh || '-';
+            document.getElementById('infoName').textContent = item.name || '-';
+            document.getElementById('infoUnit').textContent = item.unit || 'шт';
+            document.getElementById('infoBalance').textContent = formatNumber(item.balance);
+            document.getElementById('infoFact').textContent = formatNumber(item.fact);
+            document.getElementById('infoDiff').textContent = formatNumber(item.difference);
+            document.getElementById('infoContainer').textContent = item.container || '-';
+            document.getElementById('infoShelf').textContent = item.shelf || '-';
+            document.getElementById('infoBarcode').textContent = item.barcode || '-';
+            
+            document.getElementById('editFact').value = item.fact || '';
+            document.getElementById('editNote').value = item.note || '';
+            document.getElementById('editContainer').value = item.container || '';
+            document.getElementById('editShelf').value = item.shelf || '';
+            
+            document.getElementById('itemInfo').classList.add('show');
+            document.getElementById('itemInfo').scrollIntoView({ behavior: 'smooth' });
+        }
+
+        function formatNumber(num) {
+            if (num === null || num === undefined) return '0';
+            return parseFloat(num).toFixed(3);
+        }
+
+        // Сохранение данных
+        async function saveData() {
+            if (!currentItem) {
+                showNotification('⚠️ Сначала отсканируйте товар', 'error');
+                return;
+            }
+            
+            const fact = parseFloat(document.getElementById('editFact').value) || 0;
+            const note = document.getElementById('editNote').value;
+            const container = document.getElementById('editContainer').value;
+            const shelf = document.getElementById('editShelf').value;
+            const balance = currentItem.balance || 0;
+            const difference = balance - fact;
+            
+            const change = {
+                code: currentItem.bukh,
+                fact: fact,
+                note: note,
+                container: container,
+                shelf: shelf
+            };
+            
+            await savePendingChange(change);
+            
+            // Обновляем локально
+            const transaction = db.transaction(['items'], 'readwrite');
+            const store = transaction.objectStore('items');
+            const updatedItem = { 
+                ...currentItem, 
+                fact: fact, 
+                note: note, 
+                container: container, 
+                shelf: shelf,
+                difference: difference
+            };
+            store.put(updatedItem);
+            
+            currentItem = updatedItem;
+            document.getElementById('infoFact').textContent = formatNumber(fact);
+            document.getElementById('infoDiff').textContent = formatNumber(difference);
+            document.getElementById('infoContainer').textContent = container || '-';
+            document.getElementById('infoShelf').textContent = shelf || '-';
+            
+            showNotification('✅ Сохранено локально', 'success');
+            
+            if (isOnline) {
+                setTimeout(syncNow, 1500);
+            }
+        }
+
+        // История
+        function addToHistory(code, name) {
+            history.unshift({ code, name: name || 'Неизвестно', time: new Date().toLocaleTimeString() });
+            if (history.length > 30) history.pop();
+            
+            document.getElementById('historyList').innerHTML = history.map(item => `
+                <div class="history-item">
+                    <strong style="color: #2196F3;">${item.code}</strong><br>
+                    ${item.name.substring(0, 40)}${item.name.length > 40 ? '...' : ''}<br>
+                    <small style="color: #999;">${item.time}</small>
+                </div>
+            `).join('');
+        }
+
+        // Утилиты
+        function updateDBStatus(hasData) {
+            document.getElementById('dbStatus').textContent = hasData ? '✅' : '';
+        }
+
+        async function updatePendingCount() {
+            const changes = await getPendingChanges();
+            const count = changes.length;
+            document.getElementById('pendingCount').textContent = count;
+            document.getElementById('pendingDisplay').textContent = 
+                count === 0 ? '✅ Все изменения отправлены' : `${count} ожидают отправки`;
+        }
+
+        function showNotification(message, type) {
+            const notif = document.getElementById('notification');
+            notif.textContent = message;
+            notif.className = `notification show ${type}`;
+            setTimeout(() => notif.classList.remove('show'), 3000);
+        }
+
+        // Отслеживание сети
+        window.addEventListener('online', () => {
+            isOnline = true;
+            document.getElementById('connectionStatus').textContent = '🟢';
+            document.getElementById('connectionStatus').className = 'status-value online';
+            showNotification('🟢 Подключение восстановлено', 'success');
+            syncNow();
+        });
+
+        window.addEventListener('offline', () => {
+            isOnline = false;
+            document.getElementById('connectionStatus').textContent = '🔴';
+            document.getElementById('connectionStatus').className = 'status-value offline';
+            showNotification('🔴 Работа в оффлайн режиме', 'info');
+        });
+
+        // Инициализация
+        async function init() {
+            await initDB();
+            await updatePendingCount();
+            
+            if (isOnline) {
+                document.getElementById('connectionStatus').textContent = '';
+                document.getElementById('connectionStatus').className = 'status-value online';
+            } else {
+                document.getElementById('connectionStatus').textContent = '🔴';
+                document.getElementById('connectionStatus').className = 'status-value offline';
+            }
+        }
+        
+        init();
+    </script>
+</body>
+</html>
