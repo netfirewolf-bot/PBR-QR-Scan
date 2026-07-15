@@ -48,9 +48,9 @@
     </div>
     <div class="sync-panel">
         <h3>🔄 Синхронизация</h3>
-        <button class="btn btn-primary" id="btnDownload" onclick="downloadDatabase()">📥 Загрузить базу с сервера</button>
+        <button class="btn btn-primary" id="btnDownload" onclick="downloadDatabase()"> Загрузить базу с сервера</button>
         <div class="pending-count" id="pendingDisplay">0 изменений ожидают отправки</div>
-        <button class="btn btn-success" id="btnSync" onclick="syncNow()">📤 Отправить изменения</button>
+        <button class="btn btn-success" id="btnSync" onclick="syncNow()"> Отправить изменения</button>
     </div>
     <div class="scanner-container"><div id="reader"></div></div>
     <div style="display: flex; gap: 8px; margin-bottom: 10px;">
@@ -58,7 +58,7 @@
         <button class="btn btn-danger" onclick="stopScanner()" style="flex:1;">⏹️ Стоп</button>
     </div>
     <div class="item-info" id="itemInfo">
-        <h2>📦 Информация о позиции</h2>
+        <h2> Информация о позиции</h2>
         <div class="info-row"><span class="info-label">Бух. №:</span><span class="info-value" id="infoBukh">-</span></div>
         <div class="info-row"><span class="info-label">Наименование:</span><span class="info-value" id="infoName">-</span></div>
         <div class="info-row"><span class="info-label">Ед. изм.:</span><span class="info-value" id="infoUnit">-</span></div>
@@ -73,14 +73,13 @@
             <div class="input-group"><label>Примечание:</label><textarea id="editNote" rows="2"></textarea></div>
             <div class="input-group"><label>Контейнер/площадка:</label><input type="text" id="editContainer"></div>
             <div class="input-group"><label>Полка/место:</label><input type="text" id="editShelf"></div>
-            <button class="btn btn-success" onclick="saveData()">💾 Сохранить (оффлайн)</button>
+            <button class="btn btn-success" onclick="saveData()"> Сохранить (оффлайн)</button>
         </div>
     </div>
     <div class="history"><h3>📋 История сканирования</h3><div id="historyList"></div></div>
     <div class="notification" id="notification"></div>
 
     <script>
-        // ⚠️ ВАЖНО: Убедитесь, что эта ссылка совпадает с вашей последней версией в Apps Script!
         const API_URL = 'https://script.google.com/macros/s/AKfycbyRmzXnlY1o6y83mJHwP_qY5NFJfxVehHm4O72WhaJ1UVuTnazZ5XmsvtYLNCg2kye2uA/exec';
         
         const DB_NAME = 'SMR_QR_DB';
@@ -118,7 +117,6 @@
                     const store = transaction.objectStore('items');
                     store.clear();
                     data.items.forEach(item => {
-                        // Гарантируем, что ключ bukh существует
                         if(item.bukh) store.put(item);
                     });
                     transaction.oncomplete = () => {
@@ -137,18 +135,20 @@
             }
         }
 
-        // НАДЕЖНЫЙ ПОИСК (перебирает все записи, избегая ошибок индексов)
+        // ИСПРАВЛЕННАЯ ФУНКЦИЯ ПОИСКА
         async function findItem(code) {
             return new Promise((resolve) => {
                 const transaction = db.transaction(['items'], 'readonly');
                 const store = transaction.objectStore('items');
-                const request = store.getAll();
                 
+                // Получаем ВСЕ товары и ищем в памяти (надежнее)
+                const request = store.getAll();
                 request.onsuccess = () => {
                     const items = request.result;
                     const cleanCode = String(code).trim();
                     const shortCode = cleanCode.replace(/^0+/, '');
                     
+                    // Ищем совпадение по Бух.№ или Штрихкоду
                     const found = items.find(item => {
                         const itemBukh = String(item.bukh || '').trim();
                         const itemBarcode = String(item.barcode || '').trim();
@@ -162,6 +162,7 @@
                                shortBukh === shortCode ||
                                shortBarcode === shortCode;
                     });
+                    
                     resolve(found || null);
                 };
                 request.onerror = () => resolve(null);
@@ -235,7 +236,7 @@
                 showNotification('❌ Ошибка сети: ' + err.message, 'error');
             } finally {
                 btn.disabled = false;
-                btn.textContent = '📤 Отправить изменения';
+                btn.textContent = ' Отправить изменения';
             }
         }
 
