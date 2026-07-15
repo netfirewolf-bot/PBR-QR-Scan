@@ -19,14 +19,14 @@
         .pending-count { font-size: 20px; font-weight: bold; color: #FF9800; text-align: center; margin: 5px 0; }
         .btn { width: 100%; padding: 12px; border: none; border-radius: 8px; font-size: 14px; font-weight: bold; cursor: pointer; margin: 4px 0; }
         .btn-primary { background: #2196F3; color: white; } .btn-success { background: #4CAF50; color: white; } .btn-danger { background: #f44336; color: white; }
-        .btn:active { transform: scale(0.98); }
+        .btn:active { transform: scale(0.98); } .btn:disabled { opacity: 0.6; cursor: not-allowed; }
         .scanner-container { background: #000; border-radius: 10px; overflow: hidden; margin-bottom: 10px; min-height: 250px; }
         #reader { width: 100%; }
         .item-info { background: rgba(255,255,255,0.95); color: #333; padding: 12px; border-radius: 10px; margin-bottom: 10px; display: none; }
         .item-info.show { display: block; }
         .item-info h2 { color: #2196F3; margin-bottom: 8px; font-size: 16px; }
         .info-row { display: flex; justify-content: space-between; padding: 6px 0; border-bottom: 1px solid #eee; font-size: 13px; }
-        .info-label { font-weight: bold; color: #666; } .info-value { color: #333; text-align: right; max-width: 60%; }
+        .info-label { font-weight: bold; color: #666; } .info-value { color: #333; text-align: right; max-width: 60%; word-break: break-word; }
         .info-value.highlight { color: #4CAF50; font-weight: bold; font-size: 15px; } .info-value.difference { color: #f44336; font-weight: bold; }
         .edit-section { margin-top: 10px; padding-top: 10px; border-top: 2px solid #2196F3; }
         .input-group { margin-bottom: 8px; } .input-group label { display: block; margin-bottom: 3px; font-weight: bold; color: #666; font-size: 12px; }
@@ -48,9 +48,9 @@
     </div>
     <div class="sync-panel">
         <h3>🔄 Синхронизация</h3>
-        <button class="btn btn-primary" onclick="downloadDatabase()">📥 Загрузить базу с сервера</button>
+        <button class="btn btn-primary" id="btnDownload" onclick="downloadDatabase()">📥 Загрузить базу с сервера</button>
         <div class="pending-count" id="pendingDisplay">0 изменений ожидают отправки</div>
-        <button class="btn btn-success" onclick="syncNow()">📤 Отправить изменения</button>
+        <button class="btn btn-success" id="btnSync" onclick="syncNow()">📤 Отправить изменения</button>
     </div>
     <div class="scanner-container"><div id="reader"></div></div>
     <div style="display: flex; gap: 8px; margin-bottom: 10px;">
@@ -80,7 +80,7 @@
     <div class="notification" id="notification"></div>
 
     <script>
-        // Я УЖЕ ВСТАВИЛ ВАШУ ССЫЛКУ НА СКРИПТ СЮДА
+        // ⚠️ ВАЖНО: Убедитесь, что эта ссылка совпадает с вашей последней версией в Apps Script!
         const API_URL = 'https://script.google.com/macros/s/AKfycbyRmzXnlY1o6y83mJHwP_qY5NFJfxVehHm4O72WhaJ1UVuTnazZ5XmsvtYLNCg2kye2uA/exec';
         
         const DB_NAME = 'SMR_QR_DB';
@@ -94,8 +94,7 @@
                 request.onupgradeneeded = (event) => {
                     const database = event.target.result;
                     if (!database.objectStoreNames.contains('items')) {
-                        const store = database.createObjectStore('items', { keyPath: 'bukh' });
-                        store.createIndex('barcode', 'barcode', { unique: false });
+                        database.createObjectStore('items', { keyPath: 'bukh' });
                     }
                     if (!database.objectStoreNames.contains('pending_changes')) {
                         const store = database.createObjectStore('pending_changes', { keyPath: 'id', autoIncrement: true });
@@ -106,7 +105,11 @@
         }
 
         async function downloadDatabase() {
+            const btn = document.getElementById('btnDownload');
+            btn.disabled = true;
+            btn.textContent = '⏳ Загрузка...';
             showNotification('⏳ Загрузка базы данных...', 'info');
+            
             try {
                 const response = await fetch(API_URL + '?action=getItems');
                 const data = await response.json();
@@ -114,7 +117,10 @@
                     const transaction = db.transaction(['items'], 'readwrite');
                     const store = transaction.objectStore('items');
                     store.clear();
-                    data.items.forEach(item => store.put(item));
+                    data.items.forEach(item => {
+                        // Гарантируем, что ключ bukh существует
+                        if(item.bukh) store.put(item);
+                    });
                     transaction.oncomplete = () => {
                         updateDBStatus(true);
                         showNotification(`✅ Загружено ${data.items.length} позиций`, 'success');
@@ -125,31 +131,38 @@
                 }
             } catch (err) {
                 showNotification('❌ Ошибка сети: ' + err.message, 'error');
+            } finally {
+                btn.disabled = false;
+                btn.textContent = '📥 Загрузить базу с сервера';
             }
         }
 
+        // НАДЕЖНЫЙ ПОИСК (перебирает все записи, избегая ошибок индексов)
         async function findItem(code) {
             return new Promise((resolve) => {
                 const transaction = db.transaction(['items'], 'readonly');
                 const store = transaction.objectStore('items');
-                let request = store.get(code);
+                const request = store.getAll();
+                
                 request.onsuccess = () => {
-                    if (request.result) { resolve(request.result); return; }
-                    const index = store.index('barcode');
-                    const request2 = index.get(code);
-                    request2.onsuccess = () => {
-                        if (request2.result) { resolve(request2.result); return; }
-                        const shortCode = code.replace(/^0+/, '');
-                        const request3 = store.get(shortCode);
-                        request3.onsuccess = () => {
-                            if (request3.result) { resolve(request3.result); return; }
-                            const request4 = index.get(shortCode);
-                            request4.onsuccess = () => resolve(request4.result || null);
-                            request4.onerror = () => resolve(null);
-                        };
-                        request3.onerror = () => resolve(null);
-                    };
-                    request2.onerror = () => resolve(null);
+                    const items = request.result;
+                    const cleanCode = String(code).trim();
+                    const shortCode = cleanCode.replace(/^0+/, '');
+                    
+                    const found = items.find(item => {
+                        const itemBukh = String(item.bukh || '').trim();
+                        const itemBarcode = String(item.barcode || '').trim();
+                        const shortBukh = itemBukh.replace(/^0+/, '');
+                        const shortBarcode = itemBarcode.replace(/^0+/, '');
+                        
+                        return itemBukh === cleanCode || 
+                               itemBarcode === cleanCode || 
+                               itemBukh === shortCode || 
+                               itemBarcode === shortCode ||
+                               shortBukh === shortCode ||
+                               shortBarcode === shortCode;
+                    });
+                    resolve(found || null);
                 };
                 request.onerror = () => resolve(null);
             });
@@ -195,16 +208,22 @@
 
         async function syncNow() {
             if (!isOnline) { showNotification('🔴 Нет подключения к сети', 'error'); return; }
+            const btn = document.getElementById('btnSync');
+            btn.disabled = true;
+            btn.textContent = '⏳ Отправка...';
             showNotification('⏳ Отправка изменений...', 'info');
+            
             try {
                 const changes = await getPendingChanges();
                 if (changes.length === 0) { showNotification('✅ Нет изменений для отправки', 'success'); return; }
+                
                 const response = await fetch(API_URL, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ action: 'batchUpdate', updates: changes })
                 });
                 const result = await response.json();
+                
                 if (result.success) {
                     const syncedIds = changes.map(c => c.id);
                     await markChangesSynced(syncedIds);
@@ -214,6 +233,9 @@
                 }
             } catch (err) {
                 showNotification('❌ Ошибка сети: ' + err.message, 'error');
+            } finally {
+                btn.disabled = false;
+                btn.textContent = '📤 Отправить изменения';
             }
         }
 
@@ -234,6 +256,7 @@
             if (navigator.vibrate) navigator.vibrate(100);
             const code = decodedText.trim();
             showNotification(`🔍 Поиск: ${code}`, 'info');
+            
             const item = await findItem(code);
             if (item) {
                 currentItem = item;
@@ -254,10 +277,12 @@
             document.getElementById('infoDiff').textContent = formatNumber(item.difference);
             document.getElementById('infoContainer').textContent = item.container || '-';
             document.getElementById('infoShelf').textContent = item.shelf || '-';
+            
             document.getElementById('editFact').value = item.fact || '';
             document.getElementById('editNote').value = item.note || '';
             document.getElementById('editContainer').value = item.container || '';
             document.getElementById('editShelf').value = item.shelf || '';
+            
             document.getElementById('itemInfo').classList.add('show');
             document.getElementById('itemInfo').scrollIntoView({ behavior: 'smooth' });
         }
@@ -268,24 +293,31 @@
         }
 
         async function saveData() {
-            if (!currentItem) { showNotification('⚠️ Сначала отсканируйте товар', 'error'); return; }
+            if (!currentItem || !currentItem.bukh) { 
+                showNotification('⚠️ Ошибка: сначала отсканируйте товар', 'error'); 
+                return; 
+            }
             const fact = parseFloat(document.getElementById('editFact').value) || 0;
             const note = document.getElementById('editNote').value;
             const container = document.getElementById('editContainer').value;
             const shelf = document.getElementById('editShelf').value;
             const balance = currentItem.balance || 0;
             const difference = balance - fact;
+            
             const change = { code: currentItem.bukh, fact: fact, note: note, container: container, shelf: shelf };
             await savePendingChange(change);
+            
             const transaction = db.transaction(['items'], 'readwrite');
             const store = transaction.objectStore('items');
             const updatedItem = { ...currentItem, fact: fact, note: note, container: container, shelf: shelf, difference: difference };
             store.put(updatedItem);
+            
             currentItem = updatedItem;
             document.getElementById('infoFact').textContent = formatNumber(fact);
             document.getElementById('infoDiff').textContent = formatNumber(difference);
             document.getElementById('infoContainer').textContent = container || '-';
             document.getElementById('infoShelf').textContent = shelf || '-';
+            
             showNotification('✅ Сохранено локально', 'success');
             if (isOnline) setTimeout(syncNow, 1500);
         }
