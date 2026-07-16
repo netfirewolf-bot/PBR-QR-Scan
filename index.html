@@ -6,80 +6,295 @@
     <title>QR Сканер СМР</title>
     <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
     <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { font-family: -apple-system, BlinkMacSystemFont, Arial, sans-serif; background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%); color: #fff; min-height: 100vh; padding: 10px; padding-bottom: 80px; }
-        .header { text-align: center; padding: 12px; background: rgba(255,255,255,0.1); border-radius: 12px; margin-bottom: 10px; }
-        .header h1 { font-size: 20px; margin-bottom: 3px; }
-        .status-bar { display: flex; justify-content: space-around; background: rgba(255,255,255,0.1); padding: 8px; border-radius: 10px; margin-bottom: 10px; font-size: 11px; }
+        :root {
+            --primary: #2196F3;
+            --primary-dark: #1976D2;
+            --success: #4CAF50;
+            --danger: #F44336;
+            --bg: #F0F2F5;
+            --card-bg: #FFFFFF;
+            --text: #333333;
+            --text-secondary: #666666;
+            --border: #E0E0E0;
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+        body { 
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif; 
+            background: var(--bg); 
+            color: var(--text); 
+            min-height: 100vh; 
+            padding: 12px; 
+            padding-bottom: 40px;
+            font-size: 14px;
+        }
+        
+        /* Header & Status */
+        .header { 
+            text-align: center; 
+            padding: 16px; 
+            background: var(--card-bg); 
+            border-radius: 6px; 
+            border: 1px solid var(--border);
+            margin-bottom: 12px; 
+            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+        }
+        .header h1 { font-size: 18px; font-weight: 600; color: var(--text); margin-bottom: 8px; }
+        .status-bar { 
+            display: flex; 
+            justify-content: space-around; 
+            background: #FAFAFA; 
+            padding: 8px; 
+            border-radius: 4px; 
+            border: 1px solid var(--border);
+            font-size: 11px; 
+            color: var(--text-secondary);
+        }
         .status-item { text-align: center; }
-        .status-value { font-size: 16px; font-weight: bold; }
-        .online { color: #4CAF50; } .offline { color: #f44336; }
-        .sync-panel { background: rgba(255,255,255,0.95); color: #333; padding: 10px; border-radius: 10px; margin-bottom: 10px; }
-        .sync-panel h3 { color: #2196F3; margin-bottom: 8px; font-size: 14px; }
-        .pending-count { font-size: 20px; font-weight: bold; color: #FF9800; text-align: center; margin: 5px 0; }
-        .btn { width: 100%; padding: 12px; border: none; border-radius: 8px; font-size: 14px; font-weight: bold; cursor: pointer; margin: 4px 0; }
-        .btn-primary { background: #2196F3; color: white; } .btn-success { background: #4CAF50; color: white; } .btn-danger { background: #f44336; color: white; }
-        .btn:active { transform: scale(0.98); } .btn:disabled { opacity: 0.6; cursor: not-allowed; }
-        .scanner-container { background: #000; border-radius: 10px; overflow: hidden; margin-bottom: 10px; min-height: 250px; }
+        .status-value { font-size: 15px; font-weight: bold; color: var(--text); margin-bottom: 2px; }
+        .online { color: var(--success); } 
+        .offline { color: var(--danger); }
+
+        /* Cards */
+        .card { 
+            background: var(--card-bg); 
+            border: 1px solid var(--border);
+            border-radius: 6px; 
+            padding: 14px; 
+            margin-bottom: 12px; 
+            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+        }
+        .card-title { 
+            font-size: 15px; 
+            font-weight: 600; 
+            color: var(--primary); 
+            margin-bottom: 12px; 
+            padding-bottom: 8px;
+            border-bottom: 2px solid var(--primary);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        /* Buttons */
+        .btn { 
+            width: 100%; 
+            padding: 12px; 
+            border: none; 
+            border-radius: 4px; 
+            font-size: 14px; 
+            font-weight: 600; 
+            cursor: pointer; 
+            margin-bottom: 8px;
+            transition: background 0.2s;
+        }
+        .btn:active { transform: scale(0.98); }
+        .btn:disabled { opacity: 0.5; cursor: not-allowed; }
+        .btn-primary { background: var(--primary); color: white; }
+        .btn-primary:hover { background: var(--primary-dark); }
+        .btn-success { background: var(--success); color: white; }
+        .btn-danger { background: var(--danger); color: white; }
+        .btn-outline { background: transparent; border: 1px solid var(--border); color: var(--text); }
+        
+        .btn-row { display: flex; gap: 8px; margin-bottom: 8px; }
+        .btn-row .btn { margin-bottom: 0; }
+
+        /* Scanner */
+        .scanner-container { 
+            background: #000; 
+            border-radius: 6px; 
+            overflow: hidden; 
+            margin-bottom: 12px; 
+            min-height: 280px;
+            border: 2px solid var(--border);
+        }
         #reader { width: 100%; }
-        .item-info { background: rgba(255,255,255,0.95); color: #333; padding: 12px; border-radius: 10px; margin-bottom: 10px; display: none; }
-        .item-info.show { display: block; }
-        .item-info h2 { color: #2196F3; margin-bottom: 8px; font-size: 16px; }
-        .info-row { display: flex; justify-content: space-between; padding: 6px 0; border-bottom: 1px solid #eee; font-size: 13px; }
-        .info-label { font-weight: bold; color: #666; } .info-value { color: #333; text-align: right; max-width: 60%; word-break: break-word; }
-        .info-value.highlight { color: #4CAF50; font-weight: bold; font-size: 15px; } .info-value.difference { color: #f44336; font-weight: bold; }
-        .edit-section { margin-top: 10px; padding-top: 10px; border-top: 2px solid #2196F3; }
-        .input-group { margin-bottom: 8px; } .input-group label { display: block; margin-bottom: 3px; font-weight: bold; color: #666; font-size: 12px; }
-        .input-group input, .input-group textarea { width: 100%; padding: 10px; border: 2px solid #ddd; border-radius: 6px; font-size: 14px; }
-        .history { background: rgba(255,255,255,0.95); color: #333; padding: 10px; border-radius: 10px; max-height: 200px; overflow-y: auto; }
-        .history h3 { color: #2196F3; margin-bottom: 8px; font-size: 14px; } .history-item { padding: 6px; border-bottom: 1px solid #eee; font-size: 12px; }
-        .notification { position: fixed; top: 10px; left: 50%; transform: translateX(-50%); padding: 12px 20px; border-radius: 8px; color: white; font-weight: bold; z-index: 1000; display: none; font-size: 13px; max-width: 90%; text-align: center; }
-        .notification.show { display: block; animation: fadeIn 0.3s; } .notification.success { background: #4CAF50; } .notification.error { background: #f44336; } .notification.info { background: #2196F3; }
-        @keyframes fadeIn { from { opacity: 0; transform: translate(-50%, -20px); } to { opacity: 1; transform: translate(-50%, 0); } }
+        #reader video { object-fit: cover; }
+
+        /* Manual Input */
+        .manual-input-group { display: flex; gap: 8px; margin-bottom: 12px; }
+        .manual-input-group input { 
+            flex: 1; 
+            padding: 12px; 
+            border: 1px solid var(--border); 
+            border-radius: 4px; 
+            font-size: 16px; 
+        }
+
+        /* Item Info */
+        .item-info { display: none; }
+        .item-info.show { display: block; animation: fadeIn 0.3s; }
+        .item-info.flash { animation: flashGreen 0.5s; }
+        
+        .info-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 12px; }
+        .info-row { 
+            background: #FAFAFA; 
+            padding: 8px; 
+            border-radius: 4px; 
+            border: 1px solid var(--border);
+        }
+        .info-row.full-width { grid-column: 1 / -1; }
+        .info-label { font-size: 11px; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 4px; }
+        .info-value { font-size: 15px; font-weight: 500; color: var(--text); word-break: break-word; }
+        .info-value.highlight { color: var(--success); font-weight: bold; font-size: 18px; } 
+        .info-value.difference { color: var(--danger); font-weight: bold; }
+
+        /* Edit Section */
+        .edit-section { margin-top: 16px; padding-top: 16px; border-top: 1px solid var(--border); }
+        .input-group { margin-bottom: 12px; } 
+        .input-group label { display: block; margin-bottom: 6px; font-weight: 600; color: var(--text-secondary); font-size: 13px; }
+        .input-group input, .input-group textarea { 
+            width: 100%; 
+            padding: 12px; 
+            border: 1px solid var(--border); 
+            border-radius: 4px; 
+            font-size: 16px; 
+            background: #FAFAFA;
+        }
+        .input-group input:focus, .input-group textarea:focus {
+            outline: none;
+            border-color: var(--primary);
+            background: #FFF;
+        }
+        
+        /* Quick adjust buttons */
+        .quick-adjust { display: flex; align-items: center; gap: 8px; }
+        .quick-adjust input { flex: 1; text-align: center; font-weight: bold; }
+        .btn-adj { width: 44px; height: 44px; padding: 0; font-size: 20px; display: flex; align-items: center; justify-content: center; }
+
+        /* History */
+        details.history { background: var(--card-bg); border: 1px solid var(--border); border-radius: 6px; overflow: hidden; }
+        details.history summary { 
+            padding: 12px 14px; 
+            font-weight: 600; 
+            color: var(--primary); 
+            cursor: pointer; 
+            background: #FAFAFA;
+            list-style: none;
+        }
+        details.history summary::-webkit-details-marker { display: none; }
+        .history-list { max-height: 250px; overflow-y: auto; }
+        .history-item { 
+            padding: 10px 14px; 
+            border-bottom: 1px solid var(--border); 
+            font-size: 13px; 
+            display: flex;
+            justify-content: space-between;
+        }
+        .history-item:last-child { border-bottom: none; }
+        .history-code { font-weight: 600; color: var(--primary); }
+        .history-time { color: var(--text-secondary); font-size: 11px; }
+
+        /* Notification */
+        .notification { 
+            position: fixed; 
+            top: 12px; 
+            left: 50%; 
+            transform: translateX(-50%) translateY(-100px); 
+            padding: 12px 20px; 
+            border-radius: 6px; 
+            color: white; 
+            font-weight: 600; 
+            z-index: 1000; 
+            font-size: 14px; 
+            max-width: 90%; 
+            text-align: center;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            transition: transform 0.3s ease-out;
+        }
+        .notification.show { transform: translateX(-50%) translateY(0); }
+        .notification.success { background: var(--success); }
+        .notification.error { background: var(--danger); }
+        .notification.info { background: var(--primary); }
+
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        @keyframes flashGreen { 
+            0% { box-shadow: 0 0 0 0 rgba(76, 175, 80, 0.7); }
+            50% { box-shadow: 0 0 0 10px rgba(76, 175, 80, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(76, 175, 80, 0); }
+        }
     </style>
 </head>
 <body>
-    <div class="header"><h1>📱 QR Сканер СМР</h1><p>Оффлайн режим с Google Sheets</p></div>
-    <div class="status-bar">
-        <div class="status-item"><div class="status-value" id="connectionStatus">🔍</div><div>Сеть</div></div>
-        <div class="status-item"><div class="status-value" id="dbStatus">❌</div><div>База</div></div>
-        <div class="status-item"><div class="status-value" id="pendingCount">0</div><div>Ожидают</div></div>
-        <div class="status-item"><div class="status-value" id="scanCount">0</div><div>Сканирований</div></div>
-    </div>
-    <div class="sync-panel">
-        <h3>🔄 Синхронизация</h3>
-        <button class="btn btn-primary" id="btnDownload" onclick="downloadDatabase()">📥 Загрузить базу с сервера</button>
-        <div class="pending-count" id="pendingDisplay">0 изменений ожидают отправки</div>
-        <button class="btn btn-success" id="btnSync" onclick="syncNow()">📤 Отправить изменения</button>
-    </div>
-    <div class="scanner-container"><div id="reader"></div></div>
-    <div style="display: flex; gap: 8px; margin-bottom: 10px;">
-        <button class="btn btn-success" onclick="startScanner()" style="flex:1;">▶️ Старт</button>
-        <button class="btn btn-danger" onclick="stopScanner()" style="flex:1;">⏹️ Стоп</button>
-    </div>
-    <div class="item-info" id="itemInfo">
-        <h2>ℹ️ Информация о позиции</h2>
-        <div class="info-row"><span class="info-label">Бух. №:</span><span class="info-value" id="infoBukh">-</span></div>
-        <div class="info-row"><span class="info-label">Наименование:</span><span class="info-value" id="infoName">-</span></div>
-        <div class="info-row"><span class="info-label">Ед. изм.:</span><span class="info-value" id="infoUnit">-</span></div>
-        <div class="info-row"><span class="info-label">Остаток:</span><span class="info-value" id="infoBalance">-</span></div>
-        <div class="info-row"><span class="info-label">Факт:</span><span class="info-value highlight" id="infoFact">-</span></div>
-        <div class="info-row"><span class="info-label">Разница:</span><span class="info-value difference" id="infoDiff">-</span></div>
-        <div class="info-row"><span class="info-label">Контейнер:</span><span class="info-value" id="infoContainer">-</span></div>
-        <div class="info-row"><span class="info-label">Полка/место:</span><span class="info-value" id="infoShelf">-</span></div>
-        <div class="edit-section">
-            <h3>✏️ Редактирование</h3>
-            <div class="input-group"><label>Фактическое количество:</label><input type="number" id="editFact" step="0.001"></div>
-            <div class="input-group"><label>Примечание:</label><textarea id="editNote" rows="2"></textarea></div>
-            <div class="input-group"><label>Контейнер/площадка:</label><input type="text" id="editContainer"></div>
-            <div class="input-group"><label>Полка/место:</label><input type="text" id="editShelf"></div>
-            <button class="btn btn-success" onclick="saveData()">💾 Сохранить (оффлайн)</button>
+    <div class="header">
+        <h1>QR Сканер СМР</h1>
+        <div class="status-bar">
+            <div class="status-item"><div class="status-value" id="connectionStatus">🔍</div><div>Сеть</div></div>
+            <div class="status-item"><div class="status-value" id="dbStatus">❌</div><div>База</div></div>
+            <div class="status-item"><div class="status-value" id="pendingCount" style="color: var(--danger);">0</div><div>Ожидают</div></div>
+            <div class="status-item"><div class="status-value" id="scanCount">0</div><div>Сканирований</div></div>
         </div>
     </div>
-    <div class="history"><h3>📋 История сканирования</h3><div id="historyList"></div></div>
+
+    <div class="card">
+        <div class="card-title">🔄 Синхронизация</div>
+        <div class="btn-row">
+            <button class="btn btn-outline" id="btnDownload" onclick="downloadDatabase()">📥 Загрузить базу</button>
+            <button class="btn btn-success" id="btnSync" onclick="syncNow()">📤 Отправить (0)</button>
+        </div>
+    </div>
+
+    <div class="scanner-container">
+        <div id="reader"></div>
+    </div>
+    
+    <div class="btn-row">
+        <button class="btn btn-primary" onclick="startScanner()">▶️ Камера</button>
+        <button class="btn btn-danger" onclick="stopScanner()">⏹️ Стоп</button>
+    </div>
+
+    <div class="manual-input-group">
+        <input type="text" id="manualCode" placeholder="Или введите артикул вручную...">
+        <button class="btn btn-primary" style="width: auto; margin: 0;" onclick="searchManual()">🔍</button>
+    </div>
+
+    <div class="card item-info" id="itemInfo">
+        <div class="card-title">ℹ️ Информация о позиции</div>
+        <div class="info-grid">
+            <div class="info-row"><div class="info-label">Бух. №</div><div class="info-value" id="infoBukh">-</div></div>
+            <div class="info-row"><div class="info-label">Ед. изм.</div><div class="info-value" id="infoUnit">-</div></div>
+            <div class="info-row full-width"><div class="info-label">Наименование</div><div class="info-value" id="infoName">-</div></div>
+            <div class="info-row"><div class="info-label">Остаток (1С)</div><div class="info-value" id="infoBalance">-</div></div>
+            <div class="info-row"><div class="info-label">Факт (SMR)</div><div class="info-value highlight" id="infoFact">-</div></div>
+            <div class="info-row full-width"><div class="info-label">Разница</div><div class="info-value difference" id="infoDiff">-</div></div>
+            <div class="info-row"><div class="info-label">Контейнер</div><div class="info-value" id="infoContainer">-</div></div>
+            <div class="info-row"><div class="info-label">Полка/место</div><div class="info-value" id="infoShelf">-</div></div>
+        </div>
+
+        <div class="edit-section">
+            <div class="card-title" style="margin-top: 0;">✏️ Редактирование</div>
+            <div class="input-group">
+                <label>Фактическое количество:</label>
+                <div class="quick-adjust">
+                    <button class="btn btn-outline btn-adj" onclick="adjustFact(-1)">−</button>
+                    <input type="number" id="editFact" step="0.001" inputmode="decimal">
+                    <button class="btn btn-outline btn-adj" onclick="adjustFact(1)">+</button>
+                </div>
+            </div>
+            <div class="input-group">
+                <label>Примечание:</label>
+                <textarea id="editNote" rows="2"></textarea>
+            </div>
+            <div class="input-group">
+                <label>Контейнер/площадка:</label>
+                <input type="text" id="editContainer" inputmode="text">
+            </div>
+            <div class="input-group">
+                <label>Полка/место:</label>
+                <input type="text" id="editShelf" inputmode="text">
+            </div>
+            <button class="btn btn-success" onclick="saveData()">💾 Сохранить изменения</button>
+        </div>
+    </div>
+
+    <details class="history">
+        <summary>📋 История сканирования (последние 10)</summary>
+        <div class="history-list" id="historyList"></div>
+    </details>
+
     <div class="notification" id="notification"></div>
 
     <script>
+        // ЗАМЕНИТЕ НА ВАШ РЕАЛЬНЫЙ URL Google Apps Script
         const API_URL = 'https://script.google.com/macros/s/AKfycbyRmzXnlY1o6y83mJHwP_qY5NFJfxVehHm4O72WhaJ1UVuTnazZ5XmsvtYLNCg2kye2uA/exec';
         
         const DB_NAME = 'SMR_QR_DB';
@@ -92,22 +307,16 @@
                 request.onsuccess = () => { db = request.result; updateDBStatus(true); resolve(db); };
                 request.onupgradeneeded = (event) => {
                     const database = event.target.result;
-                    if (!database.objectStoreNames.contains('items')) {
-                        database.createObjectStore('items', { keyPath: 'bukh' });
-                    }
-                    if (!database.objectStoreNames.contains('pending_changes')) {
-                        database.createObjectStore('pending_changes', { keyPath: 'id', autoIncrement: true });
-                    }
+                    if (!database.objectStoreNames.contains('items')) database.createObjectStore('items', { keyPath: 'bukh' });
+                    if (!database.objectStoreNames.contains('pending_changes')) database.createObjectStore('pending_changes', { keyPath: 'id', autoIncrement: true });
                 };
             });
         }
 
         async function downloadDatabase() {
             const btn = document.getElementById('btnDownload');
-            btn.disabled = true;
-            btn.textContent = '⏳ Загрузка...';
+            btn.disabled = true; btn.textContent = '⏳ Загрузка...';
             showNotification('⏳ Загрузка базы данных...', 'info');
-            
             try {
                 const response = await fetch(API_URL + '?action=getItems');
                 const data = await response.json();
@@ -115,9 +324,7 @@
                     const transaction = db.transaction(['items'], 'readwrite');
                     const store = transaction.objectStore('items');
                     store.clear();
-                    data.items.forEach(item => {
-                        if(item.bukh) store.put(item);
-                    });
+                    data.items.forEach(item => { if(item.bukh) store.put(item); });
                     transaction.oncomplete = () => {
                         updateDBStatus(true);
                         showNotification(`✅ Загружено ${data.items.length} позиций`, 'success');
@@ -129,8 +336,7 @@
             } catch (err) {
                 showNotification('❌ Ошибка сети: ' + err.message, 'error');
             } finally {
-                btn.disabled = false;
-                btn.textContent = '📥 Загрузить базу с сервера';
+                btn.disabled = false; btn.textContent = '📥 Загрузить базу';
             }
         }
 
@@ -143,19 +349,12 @@
                     const items = request.result;
                     const cleanCode = String(code).trim();
                     const shortCode = cleanCode.replace(/^0+/, '');
-                    
                     const found = items.find(item => {
                         const itemBukh = String(item.bukh || '').trim();
                         const itemBarcode = String(item.barcode || '').trim();
-                        const shortBukh = itemBukh.replace(/^0+/, '');
-                        const shortBarcode = itemBarcode.replace(/^0+/, '');
-                        
-                        return itemBukh === cleanCode || 
-                               itemBarcode === cleanCode || 
-                               itemBukh === shortCode || 
-                               itemBarcode === shortCode ||
-                               shortBukh === shortCode ||
-                               shortBarcode === shortCode;
+                        return itemBukh === cleanCode || itemBarcode === cleanCode || 
+                               itemBukh === shortCode || itemBarcode === shortCode ||
+                               itemBukh.replace(/^0+/, '') === shortCode || itemBarcode.replace(/^0+/, '') === shortCode;
                     });
                     resolve(found || null);
                 };
@@ -180,56 +379,40 @@
                 const transaction = db.transaction(['pending_changes'], 'readonly');
                 const store = transaction.objectStore('pending_changes');
                 const request = store.getAll(); 
-                request.onsuccess = () => {
-                    const allChanges = request.result || [];
-                    const pending = allChanges.filter(change => change.synced === false);
-                    resolve(pending);
-                };
+                request.onsuccess = () => resolve((request.result || []).filter(c => c.synced === false));
                 request.onerror = () => reject(request.error);
             });
         }
 
         async function markChangesSynced(ids) {
-            return new Promise((resolve, reject) => {
-                if (!ids || ids.length === 0) { resolve(); return; }
-                const transaction = db.transaction(['pending_changes'], 'readwrite');
-                const store = transaction.objectStore('pending_changes');
-                let completed = 0;
-                ids.forEach(id => {
-                    const request = store.delete(id);
-                    request.onsuccess = () => {
-                        completed++;
-                        if (completed === ids.length) {
-                            updatePendingCount();
-                            resolve();
-                        }
-                    };
-                    request.onerror = () => reject(request.error);
-                });
+            if (!ids || ids.length === 0) return;
+            const transaction = db.transaction(['pending_changes'], 'readwrite');
+            const store = transaction.objectStore('pending_changes');
+            let completed = 0;
+            ids.forEach(id => {
+                const request = store.delete(id);
+                request.onsuccess = () => {
+                    completed++;
+                    if (completed === ids.length) updatePendingCount();
+                };
             });
         }
 
         async function syncNow() {
             if (!isOnline) { showNotification('🔴 Нет подключения к сети', 'error'); return; }
             const btn = document.getElementById('btnSync');
-            btn.disabled = true;
-            btn.textContent = '⏳ Отправка...';
+            btn.disabled = true; btn.textContent = '⏳ Отправка...';
             showNotification('⏳ Отправка изменений...', 'info');
-            
             try {
                 const changes = await getPendingChanges();
                 if (changes.length === 0) { showNotification('✅ Нет изменений для отправки', 'success'); return; }
-                
-                // ИСПРАВЛЕНИЕ CORS: убираем заголовок Content-Type, чтобы браузер не блокировал запрос
                 const response = await fetch(API_URL, {
                     method: 'POST',
                     body: JSON.stringify({ action: 'batchUpdate', updates: changes })
                 });
                 const result = await response.json();
-                
                 if (result.success) {
-                    const syncedIds = changes.map(c => c.id);
-                    await markChangesSynced(syncedIds);
+                    await markChangesSynced(changes.map(c => c.id));
                     showNotification(`✅ Отправлено ${changes.length} изменений`, 'success');
                 } else {
                     showNotification('❌ Ошибка: ' + (result.error || 'Неизвестная ошибка'), 'error');
@@ -238,36 +421,57 @@
                 showNotification('❌ Ошибка сети: ' + err.message, 'error');
             } finally {
                 btn.disabled = false;
-                btn.textContent = '📤 Отправить изменения';
+                const pending = await getPendingChanges();
+                btn.textContent = `📤 Отправить (${pending.length})`;
             }
         }
 
         function startScanner() {
-            if (html5QrCode && html5QrCode.isScanning) { showNotification('⚠️ Сканер уже запущен', 'info'); return; }
+            if (html5QrCode && html5QrCode.isScanning) return;
             html5QrCode = new Html5Qrcode("reader");
-            html5QrCode.start({ facingMode: "environment" }, { fps: 10, qrbox: { width: 250, height: 250 } }, onScanSuccess, () => {})
-            .catch(err => showNotification('❌ Ошибка камеры: ' + err, 'error'));
+            html5QrCode.start(
+                { facingMode: "environment" }, 
+                { fps: 10, qrbox: { width: 250, height: 250 }, aspectRatio: 1.0 }, 
+                onScanSuccess, 
+                () => {}
+            ).catch(err => showNotification('❌ Ошибка камеры: ' + err, 'error'));
         }
 
         function stopScanner() {
-            if (html5QrCode && html5QrCode.isScanning) { html5QrCode.stop().then(() => html5QrCode.clear()); }
+            if (html5QrCode && html5QrCode.isScanning) { 
+                html5QrCode.stop().then(() => html5QrCode.clear()); 
+            }
         }
 
         async function onScanSuccess(decodedText) {
             totalScans++;
             document.getElementById('scanCount').textContent = totalScans;
             if (navigator.vibrate) navigator.vibrate(100);
-            const code = decodedText.trim();
-            showNotification(`🔍 Поиск: ${code}`, 'info');
             
+            const code = decodedText.trim();
+            document.getElementById('manualCode').value = code; // Дублируем в ручное поле для наглядности
+            await processScan(code);
+        }
+
+        async function searchManual() {
+            const code = document.getElementById('manualCode').value.trim();
+            if (!code) { showNotification('⚠️ Введите артикул', 'error'); return; }
+            await processScan(code);
+        }
+
+        async function processScan(code) {
+            showNotification(`🔍 Поиск: ${code}`, 'info');
             const item = await findItem(code);
             if (item) {
                 currentItem = item;
                 displayItemInfo(item);
                 addToHistory(code, item.name);
-                showNotification(`✅ Найдено: ${item.name.substring(0, 30)}...`, 'success');
+                showNotification(`✅ Найдено`, 'success');
+                // Автофокус на поле факта для быстрого ввода
+                setTimeout(() => document.getElementById('editFact').focus(), 300);
             } else {
                 showNotification(`⚠️ Товар не найден: ${code}`, 'error');
+                document.getElementById('itemInfo').classList.remove('show');
             }
         }
 
@@ -286,8 +490,11 @@
             document.getElementById('editContainer').value = item.container || '';
             document.getElementById('editShelf').value = item.shelf || '';
             
-            document.getElementById('itemInfo').classList.add('show');
-            document.getElementById('itemInfo').scrollIntoView({ behavior: 'smooth' });
+            const infoCard = document.getElementById('itemInfo');
+            infoCard.classList.add('show');
+            infoCard.classList.add('flash');
+            setTimeout(() => infoCard.classList.remove('flash'), 500);
+            infoCard.scrollIntoView({ behavior: 'smooth', block: 'start' });
         }
 
         function formatNumber(num) {
@@ -295,9 +502,16 @@
             return parseFloat(num).toFixed(3);
         }
 
+        function adjustFact(delta) {
+            const input = document.getElementById('editFact');
+            let val = parseFloat(input.value) || 0;
+            val = Math.max(0, val + delta); // Не даем уйти в минус
+            input.value = val;
+        }
+
         async function saveData() {
             if (!currentItem || !currentItem.bukh) { 
-                showNotification('⚠️ Ошибка: сначала отсканируйте товар', 'error'); 
+                showNotification('⚠️ Сначала отсканируйте товар', 'error'); 
                 return; 
             }
             const fact = parseFloat(document.getElementById('editFact').value) || 0;
@@ -322,35 +536,41 @@
             document.getElementById('infoShelf').textContent = shelf || '-';
             
             showNotification('✅ Сохранено локально', 'success');
-            if (isOnline) setTimeout(syncNow, 1500);
+            if (isOnline) setTimeout(syncNow, 1000);
         }
 
         function addToHistory(code, name) {
-            history.unshift({ code, name: name || 'Неизвестно', time: new Date().toLocaleTimeString() });
-            if (history.length > 30) history.pop();
+            history.unshift({ code, name: name || 'Неизвестно', time: new Date().toLocaleTimeString('ru-RU', {hour: '2-digit', minute:'2-digit'}) });
+            if (history.length > 10) history.pop();
             document.getElementById('historyList').innerHTML = history.map(item => `
                 <div class="history-item">
-                    <strong style="color: #2196F3;">${item.code}</strong><br>
-                    ${item.name.substring(0, 40)}${item.name.length > 40 ? '...' : ''}<br>
-                    <small style="color: #999;">${item.time}</small>
+                    <div>
+                        <div class="history-code">${item.code}</div>
+                        <div style="font-size: 12px; color: #666; margin-top: 2px;">${item.name.length > 35 ? item.name.substring(0, 35) + '...' : item.name}</div>
+                    </div>
+                    <div class="history-time">${item.time}</div>
                 </div>
             `).join('');
         }
 
-        function updateDBStatus(hasData) { document.getElementById('dbStatus').textContent = hasData ? '✅' : '❌'; }
+        function updateDBStatus(hasData) { 
+            const el = document.getElementById('dbStatus');
+            el.textContent = hasData ? '✅' : '❌'; 
+            el.style.color = hasData ? 'var(--success)' : 'var(--danger)';
+        }
 
         async function updatePendingCount() {
             const changes = await getPendingChanges();
             const count = changes.length;
             document.getElementById('pendingCount').textContent = count;
-            document.getElementById('pendingDisplay').textContent = count === 0 ? '✅ Все изменения отправлены' : `${count} ожидают отправки`;
+            document.getElementById('btnSync').textContent = `📤 Отправить (${count})`;
         }
 
         function showNotification(message, type) {
             const notif = document.getElementById('notification');
             notif.textContent = message;
             notif.className = `notification show ${type}`;
-            setTimeout(() => notif.classList.remove('show'), 3000);
+            setTimeout(() => notif.classList.remove('show'), 2500);
         }
 
         window.addEventListener('online', () => {
@@ -366,6 +586,14 @@
             document.getElementById('connectionStatus').textContent = '🔴';
             document.getElementById('connectionStatus').className = 'status-value offline';
             showNotification('🔴 Работа в оффлайн режиме', 'info');
+        });
+
+        // Обработка Enter в поле ручного ввода
+        document.getElementById('manualCode').addEventListener('keypress', function (e) {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                searchManual();
+            }
         });
 
         async function init() {
