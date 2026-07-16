@@ -48,9 +48,9 @@
     </div>
     <div class="sync-panel">
         <h3>🔄 Синхронизация</h3>
-        <button class="btn btn-primary" id="btnDownload" onclick="downloadDatabase()"> Загрузить базу с сервера</button>
+        <button class="btn btn-primary" id="btnDownload" onclick="downloadDatabase()">📥 Загрузить базу с сервера</button>
         <div class="pending-count" id="pendingDisplay">0 изменений ожидают отправки</div>
-        <button class="btn btn-success" id="btnSync" onclick="syncNow()"> Отправить изменения</button>
+        <button class="btn btn-success" id="btnSync" onclick="syncNow()">📤 Отправить изменения</button>
     </div>
     <div class="scanner-container"><div id="reader"></div></div>
     <div style="display: flex; gap: 8px; margin-bottom: 10px;">
@@ -87,7 +87,7 @@
 
         async function initDB() {
             return new Promise((resolve, reject) => {
-                const request = indexedDB.open(DB_NAME, 1);
+                const request = indexedDB.open(DB_NAME, 2); // Увеличили версию базы, чтобы сбросить старые индексы
                 request.onerror = () => reject(request.error);
                 request.onsuccess = () => { db = request.result; updateDBStatus(true); resolve(db); };
                 request.onupgradeneeded = (event) => {
@@ -96,8 +96,8 @@
                         database.createObjectStore('items', { keyPath: 'bukh' });
                     }
                     if (!database.objectStoreNames.contains('pending_changes')) {
-                        const store = database.createObjectStore('pending_changes', { keyPath: 'id', autoIncrement: true });
-                        store.createIndex('synced', 'synced', { unique: false });
+                        database.createObjectStore('pending_changes', { keyPath: 'id', autoIncrement: true });
+                        // УБРАЛИ создание индекса, чтобы избежать ошибок на мобильных устройствах
                     }
                 };
             });
@@ -176,20 +176,25 @@
             });
         }
 
-        // === ИСПРАВЛЕННАЯ ФУНКЦИЯ 1 ===
+        // === ПУЛЕНЕПРОБИВАЕМАЯ ФУНКЦИЯ (БЕЗ ИНДЕКСОВ) ===
         async function getPendingChanges() {
             return new Promise((resolve, reject) => {
                 const transaction = db.transaction(['pending_changes'], 'readonly');
                 const store = transaction.objectStore('pending_changes');
-                const index = store.index('synced');
-                // ИСПРАВЛЕНИЕ: используем IDBKeyRange.only(false) вместо простого false
-                const request = index.getAll(IDBKeyRange.only(false));
-                request.onsuccess = () => resolve(request.result);
+                
+                // Просто берем ВСЕ записи из базы
+                const request = store.getAll(); 
+                
+                request.onsuccess = () => {
+                    const allChanges = request.result || [];
+                    // Фильтруем их в памяти: оставляем только те, что еще не отправлены
+                    const pending = allChanges.filter(change => change.synced === false);
+                    resolve(pending);
+                };
                 request.onerror = () => reject(request.error);
             });
         }
 
-        // === ИСПРАВЛЕННАЯ ФУНКЦИЯ 2 ===
         async function markChangesSynced(ids) {
             return new Promise((resolve, reject) => {
                 if (!ids || ids.length === 0) { resolve(); return; }
@@ -199,7 +204,6 @@
                 let completed = 0;
 
                 ids.forEach(id => {
-                    // ИСПРАВЛЕНИЕ: просто удаляем отправленные записи, чтобы не засорять память
                     const request = store.delete(id);
                     request.onsuccess = () => {
                         completed++;
