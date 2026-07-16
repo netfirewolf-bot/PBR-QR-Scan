@@ -87,7 +87,7 @@
 
         async function initDB() {
             return new Promise((resolve, reject) => {
-                const request = indexedDB.open(DB_NAME, 2); // Увеличили версию базы, чтобы сбросить старые индексы
+                const request = indexedDB.open(DB_NAME, 3); 
                 request.onerror = () => reject(request.error);
                 request.onsuccess = () => { db = request.result; updateDBStatus(true); resolve(db); };
                 request.onupgradeneeded = (event) => {
@@ -97,7 +97,6 @@
                     }
                     if (!database.objectStoreNames.contains('pending_changes')) {
                         database.createObjectStore('pending_changes', { keyPath: 'id', autoIncrement: true });
-                        // УБРАЛИ создание индекса, чтобы избежать ошибок на мобильных устройствах
                     }
                 };
             });
@@ -176,18 +175,13 @@
             });
         }
 
-        // === ПУЛЕНЕПРОБИВАЕМАЯ ФУНКЦИЯ (БЕЗ ИНДЕКСОВ) ===
         async function getPendingChanges() {
             return new Promise((resolve, reject) => {
                 const transaction = db.transaction(['pending_changes'], 'readonly');
                 const store = transaction.objectStore('pending_changes');
-                
-                // Просто берем ВСЕ записи из базы
                 const request = store.getAll(); 
-                
                 request.onsuccess = () => {
                     const allChanges = request.result || [];
-                    // Фильтруем их в памяти: оставляем только те, что еще не отправлены
                     const pending = allChanges.filter(change => change.synced === false);
                     resolve(pending);
                 };
@@ -198,11 +192,9 @@
         async function markChangesSynced(ids) {
             return new Promise((resolve, reject) => {
                 if (!ids || ids.length === 0) { resolve(); return; }
-                
                 const transaction = db.transaction(['pending_changes'], 'readwrite');
                 const store = transaction.objectStore('pending_changes');
                 let completed = 0;
-
                 ids.forEach(id => {
                     const request = store.delete(id);
                     request.onsuccess = () => {
@@ -228,9 +220,9 @@
                 const changes = await getPendingChanges();
                 if (changes.length === 0) { showNotification('✅ Нет изменений для отправки', 'success'); return; }
                 
+                // ИСПРАВЛЕНИЕ CORS: убираем заголовок Content-Type, чтобы браузер не блокировал запрос
                 const response = await fetch(API_URL, {
                     method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ action: 'batchUpdate', updates: changes })
                 });
                 const result = await response.json();
