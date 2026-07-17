@@ -28,7 +28,6 @@
             font-size: 14px;
         }
         
-        /* Header & Status */
         .header { 
             text-align: center; 
             padding: 16px; 
@@ -49,12 +48,12 @@
             font-size: 11px; 
             color: var(--text-secondary);
         }
-        .status-item { text-align: center; }
+        .status-item { text-align: center; cursor: pointer; }
+        .status-item:active { opacity: 0.7; }
         .status-value { font-size: 15px; font-weight: bold; color: var(--text); margin-bottom: 2px; }
         .online { color: var(--success); } 
         .offline { color: var(--danger); }
 
-        /* Cards */
         .card { 
             background: var(--card-bg); 
             border: 1px solid var(--border);
@@ -75,7 +74,6 @@
             align-items: center;
         }
 
-        /* Buttons */
         .btn { 
             width: 100%; 
             padding: 12px; 
@@ -98,7 +96,6 @@
         .btn-row { display: flex; gap: 8px; margin-bottom: 8px; }
         .btn-row .btn { margin-bottom: 0; }
 
-        /* Scanner */
         .scanner-container { 
             background: #000; 
             border-radius: 6px; 
@@ -106,11 +103,11 @@
             margin-bottom: 12px; 
             min-height: 280px;
             border: 2px solid var(--border);
+            position: relative;
         }
         #reader { width: 100%; }
         #reader video { object-fit: cover; }
 
-        /* Manual Input */
         .manual-input-group { display: flex; gap: 8px; margin-bottom: 12px; }
         .manual-input-group input { 
             flex: 1; 
@@ -120,7 +117,6 @@
             font-size: 16px; 
         }
 
-        /* Item Info */
         .item-info { display: none; }
         .item-info.show { display: block; animation: fadeIn 0.3s; }
         .item-info.flash { animation: flashGreen 0.5s; }
@@ -138,7 +134,6 @@
         .info-value.highlight { color: var(--success); font-weight: bold; font-size: 18px; } 
         .info-value.difference { color: var(--danger); font-weight: bold; }
 
-        /* Edit Section */
         .edit-section { margin-top: 16px; padding-top: 16px; border-top: 1px solid var(--border); }
         .input-group { margin-bottom: 12px; } 
         .input-group label { display: block; margin-bottom: 6px; font-weight: 600; color: var(--text-secondary); font-size: 13px; }
@@ -156,12 +151,10 @@
             background: #FFF;
         }
         
-        /* Quick adjust buttons */
         .quick-adjust { display: flex; align-items: center; gap: 8px; }
         .quick-adjust input { flex: 1; text-align: center; font-weight: bold; }
         .btn-adj { width: 44px; height: 44px; padding: 0; font-size: 20px; display: flex; align-items: center; justify-content: center; }
 
-        /* History */
         details.history { background: var(--card-bg); border: 1px solid var(--border); border-radius: 6px; overflow: hidden; }
         details.history summary { 
             padding: 12px 14px; 
@@ -170,6 +163,9 @@
             cursor: pointer; 
             background: #FAFAFA;
             list-style: none;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
         }
         details.history summary::-webkit-details-marker { display: none; }
         .history-list { max-height: 250px; overflow-y: auto; }
@@ -184,22 +180,27 @@
         .history-code { font-weight: 600; color: var(--primary); }
         .history-time { color: var(--text-secondary); font-size: 11px; }
 
-        /* Notification */
+        /* Modal Styles */
+        .modal-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.5); z-index: 2000; display: none;
+            justify-content: center; align-items: center;
+        }
+        .modal-overlay.show { display: flex; }
+        .modal-content {
+            background: var(--card-bg); width: 90%; max-width: 400px; max-height: 80vh;
+            border-radius: 8px; padding: 16px; display: flex; flex-direction: column;
+        }
+        .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
+        .modal-body { flex: 1; overflow-y: auto; }
+        .pending-item { padding: 10px; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; }
+        .pending-item:last-child { border-bottom: none; }
+
         .notification { 
-            position: fixed; 
-            top: 12px; 
-            left: 50%; 
-            transform: translateX(-50%) translateY(-100px); 
-            padding: 12px 20px; 
-            border-radius: 6px; 
-            color: white; 
-            font-weight: 600; 
-            z-index: 1000; 
-            font-size: 14px; 
-            max-width: 90%; 
-            text-align: center;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-            transition: transform 0.3s ease-out;
+            position: fixed; top: 12px; left: 50%; transform: translateX(-50%) translateY(-100px); 
+            padding: 12px 20px; border-radius: 6px; color: white; font-weight: 600; z-index: 1000; 
+            font-size: 14px; max-width: 90%; text-align: center;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15); transition: transform 0.3s ease-out;
         }
         .notification.show { transform: translateX(-50%) translateY(0); }
         .notification.success { background: var(--success); }
@@ -220,7 +221,7 @@
         <div class="status-bar">
             <div class="status-item"><div class="status-value" id="connectionStatus">🔍</div><div>Сеть</div></div>
             <div class="status-item"><div class="status-value" id="dbStatus">❌</div><div>База</div></div>
-            <div class="status-item"><div class="status-value" id="pendingCount" style="color: var(--danger);">0</div><div>Ожидают</div></div>
+            <div class="status-item" onclick="showPendingModal()"><div class="status-value" id="pendingCount" style="color: var(--danger);">0</div><div>Ожидают ⬇️</div></div>
             <div class="status-item"><div class="status-value" id="scanCount">0</div><div>Сканирований</div></div>
         </div>
     </div>
@@ -239,7 +240,8 @@
     
     <div class="btn-row">
         <button class="btn btn-primary" onclick="startScanner()">▶️ Камера</button>
-        <button class="btn btn-danger" onclick="stopScanner()">⏹️ Стоп</button>
+        <button class="btn btn-outline" onclick="toggleFlash()">🔦 Вспышка</button>
+        <button class="btn btn-danger" onclick="stopScanner()">⏹️ Стоп</button.>
     </div>
 
     <div class="manual-input-group">
@@ -287,28 +289,73 @@
     </div>
 
     <details class="history">
-        <summary>📋 История сканирования (последние 10)</summary>
+        <summary>
+            <span>📋 История сканирования (24 часа)</span>
+            <button class="btn btn-outline" style="width: auto; padding: 4px 8px; font-size: 12px; margin: 0;" onclick="exportHistory()">📥 Скачать файл</button>
+        </summary>
         <div class="history-list" id="historyList"></div>
     </details>
+
+    <!-- Modal for Pending Changes -->
+    <div class="modal-overlay" id="pendingModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>⏳ Ожидают отправки</h3>
+                <button class="btn btn-outline" style="width: auto; padding: 4px 8px;" onclick="closePendingModal()">✕</button>
+            </div>
+            <div class="modal-body" id="pendingList">
+                <!-- Pending items will be injected here -->
+            </div>
+            <div class="btn-row" style="margin-top: 12px;">
+                <button class="btn btn-danger" onclick="clearAllPending()">🗑️ Очистить все</button>
+                <button class="btn btn-success" onclick="closePendingModal(); syncNow();">📤 Отправить все</button>
+            </div>
+        </div>
+    </div>
 
     <div class="notification" id="notification"></div>
 
     <script>
-        // ЗАМЕНИТЕ НА ВАШ РЕАЛЬНЫЙ URL Google Apps Script
         const API_URL = 'https://script.google.com/macros/s/AKfycbyRmzXnlY1o6y83mJHwP_qY5NFJfxVehHm4O72WhaJ1UVuTnazZ5XmsvtYLNCg2kye2uA/exec';
         
         const DB_NAME = 'SMR_QR_DB';
-        let db = null, currentItem = null, history = [], isOnline = navigator.onLine, html5QrCode = null, totalScans = 0;
+        let db = null, currentItem = null, isOnline = navigator.onLine, html5QrCode = null, totalScans = 0, isTorchOn = false;
 
         async function initDB() {
             return new Promise((resolve, reject) => {
-                const request = indexedDB.open(DB_NAME, 3); 
+                const request = indexedDB.open(DB_NAME, 4); // Increased version to 4
                 request.onerror = () => reject(request.error);
-                request.onsuccess = () => { db = request.result; updateDBStatus(true); resolve(db); };
+                request.onsuccess = () => { db = request.result; updateDBStatus(); resolve(db); };
                 request.onupgradeneeded = (event) => {
                     const database = event.target.result;
                     if (!database.objectStoreNames.contains('items')) database.createObjectStore('items', { keyPath: 'bukh' });
                     if (!database.objectStoreNames.contains('pending_changes')) database.createObjectStore('pending_changes', { keyPath: 'id', autoIncrement: true });
+                    if (!database.objectStoreNames.contains('scan_history')) {
+                        const historyStore = database.createObjectStore('scan_history', { keyPath: 'id', autoIncrement: true });
+                        historyStore.createIndex('timestamp', 'timestamp', { unique: false });
+                    }
+                };
+            });
+        }
+
+        async function updateDBStatus() {
+            return new Promise(resolve => {
+                const transaction = db.transaction(['items'], 'readonly');
+                const store = transaction.objectStore('items');
+                const request = store.count();
+                request.onsuccess = () => {
+                    const count = request.result;
+                    const el = document.getElementById('dbStatus');
+                    if (count > 0) {
+                        el.textContent = `✅ (${count})`;
+                        el.style.color = 'var(--success)';
+                        el.title = "База загружена";
+                    } else {
+                        el.textContent = '❌ (0)';
+                        el.style.color = 'var(--danger)';
+                        el.title = "База пуста. Нажмите 'Загрузить базу'";
+                    }
+                    resolve(count > 0);
                 };
             });
         }
@@ -325,8 +372,8 @@
                     const store = transaction.objectStore('items');
                     store.clear();
                     data.items.forEach(item => { if(item.bukh) store.put(item); });
-                    transaction.oncomplete = () => {
-                        updateDBStatus(true);
+                    transaction.oncomplete = async () {
+                        await updateDBStatus();
                         showNotification(`✅ Загружено ${data.items.length} позиций`, 'success');
                         updatePendingCount();
                     };
@@ -399,215 +446,4 @@
         }
 
         async function syncNow() {
-            if (!isOnline) { showNotification('🔴 Нет подключения к сети', 'error'); return; }
-            const btn = document.getElementById('btnSync');
-            btn.disabled = true; btn.textContent = '⏳ Отправка...';
-            showNotification('⏳ Отправка изменений...', 'info');
-            try {
-                const changes = await getPendingChanges();
-                if (changes.length === 0) { showNotification('✅ Нет изменений для отправки', 'success'); return; }
-                const response = await fetch(API_URL, {
-                    method: 'POST',
-                    body: JSON.stringify({ action: 'batchUpdate', updates: changes })
-                });
-                const result = await response.json();
-                if (result.success) {
-                    await markChangesSynced(changes.map(c => c.id));
-                    showNotification(`✅ Отправлено ${changes.length} изменений`, 'success');
-                } else {
-                    showNotification('❌ Ошибка: ' + (result.error || 'Неизвестная ошибка'), 'error');
-                }
-            } catch (err) {
-                showNotification('❌ Ошибка сети: ' + err.message, 'error');
-            } finally {
-                btn.disabled = false;
-                const pending = await getPendingChanges();
-                btn.textContent = `📤 Отправить (${pending.length})`;
-            }
-        }
-
-        function startScanner() {
-            if (html5QrCode && html5QrCode.isScanning) return;
-            html5QrCode = new Html5Qrcode("reader");
-            html5QrCode.start(
-                { facingMode: "environment" }, 
-                { fps: 10, qrbox: { width: 250, height: 250 }, aspectRatio: 1.0 }, 
-                onScanSuccess, 
-                () => {}
-            ).catch(err => showNotification('❌ Ошибка камеры: ' + err, 'error'));
-        }
-
-        function stopScanner() {
-            if (html5QrCode && html5QrCode.isScanning) { 
-                html5QrCode.stop().then(() => html5QrCode.clear()); 
-            }
-        }
-
-        async function onScanSuccess(decodedText) {
-            totalScans++;
-            document.getElementById('scanCount').textContent = totalScans;
-            if (navigator.vibrate) navigator.vibrate(100);
-            
-            const code = decodedText.trim();
-            document.getElementById('manualCode').value = code; // Дублируем в ручное поле для наглядности
-            await processScan(code);
-        }
-
-        async function searchManual() {
-            const code = document.getElementById('manualCode').value.trim();
-            if (!code) { showNotification('⚠️ Введите артикул', 'error'); return; }
-            await processScan(code);
-        }
-
-        async function processScan(code) {
-            showNotification(`🔍 Поиск: ${code}`, 'info');
-            const item = await findItem(code);
-            if (item) {
-                currentItem = item;
-                displayItemInfo(item);
-                addToHistory(code, item.name);
-                showNotification(`✅ Найдено`, 'success');
-                // Автофокус на поле факта для быстрого ввода
-                setTimeout(() => document.getElementById('editFact').focus(), 300);
-            } else {
-                showNotification(`⚠️ Товар не найден: ${code}`, 'error');
-                document.getElementById('itemInfo').classList.remove('show');
-            }
-        }
-
-        function displayItemInfo(item) {
-            document.getElementById('infoBukh').textContent = item.bukh || '-';
-            document.getElementById('infoName').textContent = item.name || '-';
-            document.getElementById('infoUnit').textContent = item.unit || 'шт';
-            document.getElementById('infoBalance').textContent = formatNumber(item.balance);
-            document.getElementById('infoFact').textContent = formatNumber(item.fact);
-            document.getElementById('infoDiff').textContent = formatNumber(item.difference);
-            document.getElementById('infoContainer').textContent = item.container || '-';
-            document.getElementById('infoShelf').textContent = item.shelf || '-';
-            
-            document.getElementById('editFact').value = item.fact || '';
-            document.getElementById('editNote').value = item.note || '';
-            document.getElementById('editContainer').value = item.container || '';
-            document.getElementById('editShelf').value = item.shelf || '';
-            
-            const infoCard = document.getElementById('itemInfo');
-            infoCard.classList.add('show');
-            infoCard.classList.add('flash');
-            setTimeout(() => infoCard.classList.remove('flash'), 500);
-            infoCard.scrollIntoView({ behavior: 'smooth', block: 'start' });
-        }
-
-        function formatNumber(num) {
-            if (num === null || num === undefined) return '0';
-            return parseFloat(num).toFixed(3);
-        }
-
-        function adjustFact(delta) {
-            const input = document.getElementById('editFact');
-            let val = parseFloat(input.value) || 0;
-            val = Math.max(0, val + delta); // Не даем уйти в минус
-            input.value = val;
-        }
-
-        async function saveData() {
-            if (!currentItem || !currentItem.bukh) { 
-                showNotification('⚠️ Сначала отсканируйте товар', 'error'); 
-                return; 
-            }
-            const fact = parseFloat(document.getElementById('editFact').value) || 0;
-            const note = document.getElementById('editNote').value;
-            const container = document.getElementById('editContainer').value;
-            const shelf = document.getElementById('editShelf').value;
-            const balance = currentItem.balance || 0;
-            const difference = balance - fact;
-            
-            const change = { code: currentItem.bukh, fact: fact, note: note, container: container, shelf: shelf };
-            await savePendingChange(change);
-            
-            const transaction = db.transaction(['items'], 'readwrite');
-            const store = transaction.objectStore('items');
-            const updatedItem = { ...currentItem, fact: fact, note: note, container: container, shelf: shelf, difference: difference };
-            store.put(updatedItem);
-            
-            currentItem = updatedItem;
-            document.getElementById('infoFact').textContent = formatNumber(fact);
-            document.getElementById('infoDiff').textContent = formatNumber(difference);
-            document.getElementById('infoContainer').textContent = container || '-';
-            document.getElementById('infoShelf').textContent = shelf || '-';
-            
-            showNotification('✅ Сохранено локально', 'success');
-            if (isOnline) setTimeout(syncNow, 1000);
-        }
-
-        function addToHistory(code, name) {
-            history.unshift({ code, name: name || 'Неизвестно', time: new Date().toLocaleTimeString('ru-RU', {hour: '2-digit', minute:'2-digit'}) });
-            if (history.length > 10) history.pop();
-            document.getElementById('historyList').innerHTML = history.map(item => `
-                <div class="history-item">
-                    <div>
-                        <div class="history-code">${item.code}</div>
-                        <div style="font-size: 12px; color: #666; margin-top: 2px;">${item.name.length > 35 ? item.name.substring(0, 35) + '...' : item.name}</div>
-                    </div>
-                    <div class="history-time">${item.time}</div>
-                </div>
-            `).join('');
-        }
-
-        function updateDBStatus(hasData) { 
-            const el = document.getElementById('dbStatus');
-            el.textContent = hasData ? '✅' : '❌'; 
-            el.style.color = hasData ? 'var(--success)' : 'var(--danger)';
-        }
-
-        async function updatePendingCount() {
-            const changes = await getPendingChanges();
-            const count = changes.length;
-            document.getElementById('pendingCount').textContent = count;
-            document.getElementById('btnSync').textContent = `📤 Отправить (${count})`;
-        }
-
-        function showNotification(message, type) {
-            const notif = document.getElementById('notification');
-            notif.textContent = message;
-            notif.className = `notification show ${type}`;
-            setTimeout(() => notif.classList.remove('show'), 2500);
-        }
-
-        window.addEventListener('online', () => {
-            isOnline = true;
-            document.getElementById('connectionStatus').textContent = '🟢';
-            document.getElementById('connectionStatus').className = 'status-value online';
-            showNotification('🟢 Подключение восстановлено', 'success');
-            syncNow();
-        });
-
-        window.addEventListener('offline', () => {
-            isOnline = false;
-            document.getElementById('connectionStatus').textContent = '🔴';
-            document.getElementById('connectionStatus').className = 'status-value offline';
-            showNotification('🔴 Работа в оффлайн режиме', 'info');
-        });
-
-        // Обработка Enter в поле ручного ввода
-        document.getElementById('manualCode').addEventListener('keypress', function (e) {
-            if (e.key === 'Enter') {
-                e.preventDefault();
-                searchManual();
-            }
-        });
-
-        async function init() {
-            await initDB();
-            await updatePendingCount();
-            if (isOnline) {
-                document.getElementById('connectionStatus').textContent = '🟢';
-                document.getElementById('connectionStatus').className = 'status-value online';
-            } else {
-                document.getElementById('connectionStatus').textContent = '🔴';
-                document.getElementById('connectionStatus').className = 'status-value offline';
-            }
-        }
-        init();
-    </script>
-</body>
-</html>
+            if (!isOnline) { showNotification('
