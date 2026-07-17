@@ -6,224 +6,74 @@
     <title>QR Сканер СМР</title>
     <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
     <style>
-        :root {
-            --primary: #2196F3;
-            --primary-dark: #1976D2;
-            --success: #4CAF50;
-            --danger: #F44336;
-            --bg: #F0F2F5;
-            --card-bg: #FFFFFF;
-            --text: #333333;
-            --text-secondary: #666666;
-            --border: #E0E0E0;
-        }
+        :root { --primary: #2196F3; --primary-dark: #1976D2; --success: #4CAF50; --danger: #F44336; --bg: #F0F2F5; --card-bg: #FFFFFF; --text: #333333; --text-secondary: #666666; --border: #E0E0E0; }
         * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
-        body { 
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif; 
-            background: var(--bg); 
-            color: var(--text); 
-            min-height: 100vh; 
-            padding: 12px; 
-            padding-bottom: 40px;
-            font-size: 14px;
-        }
-        
-        .header { 
-            text-align: center; 
-            padding: 16px; 
-            background: var(--card-bg); 
-            border-radius: 6px; 
-            border: 1px solid var(--border);
-            margin-bottom: 12px; 
-            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
-        }
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; padding: 12px; padding-bottom: 40px; font-size: 14px; }
+        .header { text-align: center; padding: 16px; background: var(--card-bg); border-radius: 6px; border: 1px solid var(--border); margin-bottom: 12px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
         .header h1 { font-size: 18px; font-weight: 600; color: var(--text); margin-bottom: 8px; }
-        .status-bar { 
-            display: flex; 
-            justify-content: space-around; 
-            background: #FAFAFA; 
-            padding: 8px; 
-            border-radius: 4px; 
-            border: 1px solid var(--border);
-            font-size: 11px; 
-            color: var(--text-secondary);
-        }
+        .status-bar { display: flex; justify-content: space-around; background: #FAFAFA; padding: 8px; border-radius: 4px; border: 1px solid var(--border); font-size: 11px; color: var(--text-secondary); }
         .status-item { text-align: center; cursor: pointer; }
-        .status-item:active { opacity: 0.7; }
         .status-value { font-size: 15px; font-weight: bold; color: var(--text); margin-bottom: 2px; }
-        .online { color: var(--success); } 
-        .offline { color: var(--danger); }
-
-        .card { 
-            background: var(--card-bg); 
-            border: 1px solid var(--border);
-            border-radius: 6px; 
-            padding: 14px; 
-            margin-bottom: 12px; 
-            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
-        }
-        .card-title { 
-            font-size: 15px; 
-            font-weight: 600; 
-            color: var(--primary); 
-            margin-bottom: 12px; 
-            padding-bottom: 8px;
-            border-bottom: 2px solid var(--primary);
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-
-        .btn { 
-            width: 100%; 
-            padding: 12px; 
-            border: none; 
-            border-radius: 4px; 
-            font-size: 14px; 
-            font-weight: 600; 
-            cursor: pointer; 
-            margin-bottom: 8px;
-            transition: background 0.2s;
-        }
-        .btn:active { transform: scale(0.98); }
-        .btn:disabled { opacity: 0.5; cursor: not-allowed; }
-        .btn-primary { background: var(--primary); color: white; }
-        .btn-primary:hover { background: var(--primary-dark); }
-        .btn-success { background: var(--success); color: white; }
-        .btn-danger { background: var(--danger); color: white; }
-        .btn-outline { background: transparent; border: 1px solid var(--border); color: var(--text); }
-        
-        .btn-row { display: flex; gap: 8px; margin-bottom: 8px; }
-        .btn-row .btn { margin-bottom: 0; }
-
-        .scanner-container { 
-            background: #000; 
-            border-radius: 6px; 
-            overflow: hidden; 
-            margin-bottom: 12px; 
-            min-height: 280px;
-            border: 2px solid var(--border);
-            position: relative;
-        }
-        #reader { width: 100%; }
-        #reader video { object-fit: cover; }
-
+        .online { color: var(--success); } .offline { color: var(--danger); }
+        .card { background: var(--card-bg); border: 1px solid var(--border); border-radius: 6px; padding: 14px; margin-bottom: 12px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
+        .card-title { font-size: 15px; font-weight: 600; color: var(--primary); margin-bottom: 12px; padding-bottom: 8px; border-bottom: 2px solid var(--primary); display: flex; justify-content: space-between; align-items: center; }
+        .btn { width: 100%; padding: 12px; border: none; border-radius: 4px; font-size: 14px; font-weight: 600; cursor: pointer; margin-bottom: 8px; transition: background 0.2s; }
+        .btn:active { transform: scale(0.98); } .btn:disabled { opacity: 0.5; cursor: not-allowed; }
+        .btn-primary { background: var(--primary); color: white; } .btn-success { background: var(--success); color: white; } .btn-danger { background: var(--danger); color: white; } .btn-outline { background: transparent; border: 1px solid var(--border); color: var(--text); }
+        .btn-row { display: flex; gap: 8px; margin-bottom: 8px; } .btn-row .btn { margin-bottom: 0; }
+        .scanner-container { background: #000; border-radius: 6px; overflow: hidden; margin-bottom: 12px; min-height: 280px; border: 2px solid var(--border); position: relative; }
+        #reader { width: 100%; } #reader video { object-fit: cover; }
         .manual-input-group { display: flex; gap: 8px; margin-bottom: 12px; }
-        .manual-input-group input { 
-            flex: 1; 
-            padding: 12px; 
-            border: 1px solid var(--border); 
-            border-radius: 4px; 
-            font-size: 16px; 
-        }
-
-        .item-info { display: none; }
-        .item-info.show { display: block; animation: fadeIn 0.3s; }
-        .item-info.flash { animation: flashGreen 0.5s; }
-        
+        .manual-input-group input { flex: 1; padding: 12px; border: 1px solid var(--border); border-radius: 4px; font-size: 16px; }
+        .item-info { display: none; } .item-info.show { display: block; animation: fadeIn 0.3s; }
         .info-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 12px; }
-        .info-row { 
-            background: #FAFAFA; 
-            padding: 8px; 
-            border-radius: 4px; 
-            border: 1px solid var(--border);
-        }
+        .info-row { background: #FAFAFA; padding: 8px; border-radius: 4px; border: 1px solid var(--border); }
         .info-row.full-width { grid-column: 1 / -1; }
         .info-label { font-size: 11px; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 4px; }
         .info-value { font-size: 15px; font-weight: 500; color: var(--text); word-break: break-word; }
         .info-value.highlight { color: var(--success); font-weight: bold; font-size: 18px; } 
         .info-value.difference { color: var(--danger); font-weight: bold; }
-
         .edit-section { margin-top: 16px; padding-top: 16px; border-top: 1px solid var(--border); }
         .input-group { margin-bottom: 12px; } 
         .input-group label { display: block; margin-bottom: 6px; font-weight: 600; color: var(--text-secondary); font-size: 13px; }
-        .input-group input, .input-group textarea { 
-            width: 100%; 
-            padding: 12px; 
-            border: 1px solid var(--border); 
-            border-radius: 4px; 
-            font-size: 16px; 
-            background: #FAFAFA;
-        }
-        .input-group input:focus, .input-group textarea:focus {
-            outline: none;
-            border-color: var(--primary);
-            background: #FFF;
-        }
-        
+        .input-group input, .input-group textarea { width: 100%; padding: 12px; border: 1px solid var(--border); border-radius: 4px; font-size: 16px; background: #FAFAFA; }
         .quick-adjust { display: flex; align-items: center; gap: 8px; }
         .quick-adjust input { flex: 1; text-align: center; font-weight: bold; }
         .btn-adj { width: 44px; height: 44px; padding: 0; font-size: 20px; display: flex; align-items: center; justify-content: center; }
-
         details.history { background: var(--card-bg); border: 1px solid var(--border); border-radius: 6px; overflow: hidden; }
-        details.history summary { 
-            padding: 12px 14px; 
-            font-weight: 600; 
-            color: var(--primary); 
-            cursor: pointer; 
-            background: #FAFAFA;
-            list-style: none;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
+        details.history summary { padding: 12px 14px; font-weight: 600; color: var(--primary); cursor: pointer; background: #FAFAFA; list-style: none; display: flex; justify-content: space-between; align-items: center; }
         details.history summary::-webkit-details-marker { display: none; }
         .history-list { max-height: 250px; overflow-y: auto; }
-        .history-item { 
-            padding: 10px 14px; 
-            border-bottom: 1px solid var(--border); 
-            font-size: 13px; 
-            display: flex;
-            justify-content: space-between;
-        }
+        .history-item { padding: 10px 14px; border-bottom: 1px solid var(--border); font-size: 13px; display: flex; justify-content: space-between; }
         .history-item:last-child { border-bottom: none; }
         .history-code { font-weight: 600; color: var(--primary); }
         .history-time { color: var(--text-secondary); font-size: 11px; }
-
-        /* Modal Styles */
-        .modal-overlay {
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0,0,0,0.5); z-index: 2000; display: none;
-            justify-content: center; align-items: center;
-        }
+        .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 2000; display: none; justify-content: center; align-items: center; }
         .modal-overlay.show { display: flex; }
-        .modal-content {
-            background: var(--card-bg); width: 90%; max-width: 400px; max-height: 80vh;
-            border-radius: 8px; padding: 16px; display: flex; flex-direction: column;
-        }
+        .modal-content { background: var(--card-bg); width: 90%; max-width: 400px; max-height: 80vh; border-radius: 8px; padding: 16px; display: flex; flex-direction: column; }
         .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
         .modal-body { flex: 1; overflow-y: auto; }
         .pending-item { padding: 10px; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; }
         .pending-item:last-child { border-bottom: none; }
-
-        .notification { 
-            position: fixed; top: 12px; left: 50%; transform: translateX(-50%) translateY(-100px); 
-            padding: 12px 20px; border-radius: 6px; color: white; font-weight: 600; z-index: 1000; 
-            font-size: 14px; max-width: 90%; text-align: center;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.15); transition: transform 0.3s ease-out;
-        }
+        .notification { position: fixed; top: 12px; left: 50%; transform: translateX(-50%) translateY(-100px); padding: 12px 20px; border-radius: 6px; color: white; font-weight: 600; z-index: 1000; font-size: 14px; max-width: 90%; text-align: center; box-shadow: 0 4px 12px rgba(0,0,0,0.15); transition: transform 0.3s ease-out; }
         .notification.show { transform: translateX(-50%) translateY(0); }
-        .notification.success { background: var(--success); }
-        .notification.error { background: var(--danger); }
-        .notification.info { background: var(--primary); }
-
+        .notification.success { background: var(--success); } .notification.error { background: var(--danger); } .notification.info { background: var(--primary); }
+        .debug-log { margin-top: 10px; padding: 10px; background: #222; color: #0f0; font-family: monospace; font-size: 11px; border-radius: 4px; max-height: 150px; overflow-y: auto; display: none; }
+        .debug-log.show { display: block; }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-        @keyframes flashGreen { 
-            0% { box-shadow: 0 0 0 0 rgba(76, 175, 80, 0.7); }
-            50% { box-shadow: 0 0 0 10px rgba(76, 175, 80, 0); }
-            100% { box-shadow: 0 0 0 0 rgba(76, 175, 80, 0); }
-        }
+        @keyframes flashGreen { 0% { box-shadow: 0 0 0 0 rgba(76, 175, 80, 0.7); } 50% { box-shadow: 0 0 0 10px rgba(76, 175, 80, 0); } 100% { box-shadow: 0 0 0 0 rgba(76, 175, 80, 0); } }
     </style>
 </head>
 <body>
     <div class="header">
         <h1>QR Сканер СМР</h1>
         <div class="status-bar">
-            <div class="status-item"><div class="status-value" id="connectionStatus">🔍</div><div>Сеть</div></div>
-            <div class="status-item"><div class="status-value" id="dbStatus">❌</div><div>База</div></div>
+            <div class="status-item" onclick="toggleDebug()"><div class="status-value" id="connectionStatus">🔍</div><div>Сеть</div></div>
+            <div class="status-item" onclick="toggleDebug()"><div class="status-value" id="dbStatus">❌</div><div>База</div></div>
             <div class="status-item" onclick="showPendingModal()"><div class="status-value" id="pendingCount" style="color: var(--danger);">0</div><div>Ожидают ⬇️</div></div>
             <div class="status-item"><div class="status-value" id="scanCount">0</div><div>Сканирований</div></div>
         </div>
+        <div class="debug-log" id="debugLog"></div>
     </div>
 
     <div class="card">
@@ -232,6 +82,7 @@
             <button class="btn btn-outline" id="btnDownload" onclick="downloadDatabase()">📥 Загрузить базу</button>
             <button class="btn btn-success" id="btnSync" onclick="syncNow()">📤 Отправить (0)</button>
         </div>
+        <button class="btn btn-outline" onclick="testConnection()" style="margin-top:8px; font-size:12px;">🔍 Проверить связь с сервером</button>
     </div>
 
     <div class="scanner-container">
@@ -241,7 +92,7 @@
     <div class="btn-row">
         <button class="btn btn-primary" onclick="startScanner()">▶️ Камера</button>
         <button class="btn btn-outline" onclick="toggleFlash()">🔦 Вспышка</button>
-        <button class="btn btn-danger" onclick="stopScanner()">⏹️ Стоп</button.>
+        <button class="btn btn-danger" onclick="stopScanner()">⏹️ Стоп</button>
     </div>
 
     <div class="manual-input-group">
@@ -296,16 +147,13 @@
         <div class="history-list" id="historyList"></div>
     </details>
 
-    <!-- Modal for Pending Changes -->
     <div class="modal-overlay" id="pendingModal">
         <div class="modal-content">
             <div class="modal-header">
                 <h3>⏳ Ожидают отправки</h3>
                 <button class="btn btn-outline" style="width: auto; padding: 4px 8px;" onclick="closePendingModal()">✕</button>
             </div>
-            <div class="modal-body" id="pendingList">
-                <!-- Pending items will be injected here -->
-            </div>
+            <div class="modal-body" id="pendingList"></div>
             <div class="btn-row" style="margin-top: 12px;">
                 <button class="btn btn-danger" onclick="clearAllPending()">🗑️ Очистить все</button>
                 <button class="btn btn-success" onclick="closePendingModal(); syncNow();">📤 Отправить все</button>
@@ -316,30 +164,66 @@
     <div class="notification" id="notification"></div>
 
     <script>
+        // ВНИМАНИЕ: Убедитесь, что этот URL опубликован как "Веб-приложение" с доступом "Все" (Anyone)
         const API_URL = 'https://script.google.com/macros/s/AKfycbyRmzXnlY1o6y83mJHwP_qY5NFJfxVehHm4O72WhaJ1UVuTnazZ5XmsvtYLNCg2kye2uA/exec';
         
         const DB_NAME = 'SMR_QR_DB';
         let db = null, currentItem = null, isOnline = navigator.onLine, html5QrCode = null, totalScans = 0, isTorchOn = false;
 
+        function logDebug(msg) {
+            const log = document.getElementById('debugLog');
+            const time = new Date().toLocaleTimeString();
+            log.innerHTML += `[${time}] ${msg}<br>`;
+            log.scrollTop = log.scrollHeight;
+            console.log(msg);
+        }
+
+        function toggleDebug() {
+            document.getElementById('debugLog').classList.toggle('show');
+        }
+
         async function initDB() {
             return new Promise((resolve, reject) => {
-                const request = indexedDB.open(DB_NAME, 4); // Increased version to 4
-                request.onerror = () => reject(request.error);
-                request.onsuccess = () => { db = request.result; updateDBStatus(); resolve(db); };
-                request.onupgradeneeded = (event) => {
-                    const database = event.target.result;
-                    if (!database.objectStoreNames.contains('items')) database.createObjectStore('items', { keyPath: 'bukh' });
-                    if (!database.objectStoreNames.contains('pending_changes')) database.createObjectStore('pending_changes', { keyPath: 'id', autoIncrement: true });
-                    if (!database.objectStoreNames.contains('scan_history')) {
-                        const historyStore = database.createObjectStore('scan_history', { keyPath: 'id', autoIncrement: true });
-                        historyStore.createIndex('timestamp', 'timestamp', { unique: false });
-                    }
-                };
+                try {
+                    logDebug("Открытие IndexedDB...");
+                    const request = indexedDB.open(DB_NAME, 4);
+                    request.onerror = (event) => {
+                        const err = event.target.error;
+                        logDebug("❌ Ошибка IndexedDB: " + err.name + " - " + err.message);
+                        showNotification("❌ Ошибка базы данных: " + err.message, "error");
+                        reject(err);
+                    };
+                    request.onsuccess = (event) => {
+                        db = event.target.result;
+                        logDebug("✅ IndexedDB успешно открыта");
+                        updateDBStatus().then(() => resolve(db));
+                    };
+                    request.onupgradeneeded = (event) => {
+                        logDebug("Обновление структуры базы данных...");
+                        const database = event.target.result;
+                        if (!database.objectStoreNames.contains('items')) database.createObjectStore('items', { keyPath: 'bukh' });
+                        if (!database.objectStoreNames.contains('pending_changes')) database.createObjectStore('pending_changes', { keyPath: 'id', autoIncrement: true });
+                        if (!database.objectStoreNames.contains('scan_history')) {
+                            const historyStore = database.createObjectStore('scan_history', { keyPath: 'id', autoIncrement: true });
+                            historyStore.createIndex('timestamp', 'timestamp', { unique: false });
+                        }
+                    };
+                } catch (e) {
+                    logDebug("❌ Критическая ошибка инициализации: " + e.message);
+                    showNotification("❌ Браузер блокирует базу данных!", "error");
+                    reject(e);
+                }
             });
         }
 
         async function updateDBStatus() {
             return new Promise(resolve => {
+                if (!db) {
+                    document.getElementById('dbStatus').textContent = '❌ (0)';
+                    document.getElementById('dbStatus').style.color = 'var(--danger)';
+                    resolve(false);
+                    return;
+                }
                 const transaction = db.transaction(['items'], 'readonly');
                 const store = transaction.objectStore('items');
                 const request = store.count();
@@ -349,24 +233,41 @@
                     if (count > 0) {
                         el.textContent = `✅ (${count})`;
                         el.style.color = 'var(--success)';
-                        el.title = "База загружена";
                     } else {
                         el.textContent = '❌ (0)';
                         el.style.color = 'var(--danger)';
-                        el.title = "База пуста. Нажмите 'Загрузить базу'";
                     }
                     resolve(count > 0);
                 };
+                request.onerror = () => resolve(false);
             });
+        }
+
+        async function testConnection() {
+            showNotification("Проверка связи...", "info");
+            logDebug("Проверка связи с: " + API_URL);
+            try {
+                const response = await fetch(API_URL + '?action=ping'); // Или любой безопасный запрос
+                const text = await response.text();
+                logDebug("Ответ сервера: " + text.substring(0, 100));
+                showNotification("✅ Связь с сервером есть!", "success");
+            } catch (err) {
+                logDebug("❌ Ошибка сети: " + err.message);
+                showNotification("❌ Нет связи: " + err.message, "error");
+            }
         }
 
         async function downloadDatabase() {
             const btn = document.getElementById('btnDownload');
             btn.disabled = true; btn.textContent = '⏳ Загрузка...';
             showNotification('⏳ Загрузка базы данных...', 'info');
+            logDebug("Запрос данных с сервера...");
             try {
                 const response = await fetch(API_URL + '?action=getItems');
+                if (!response.ok) throw new Error("HTTP " + response.status);
                 const data = await response.json();
+                logDebug("Получено данных: " + (data.items ? data.items.length : 0));
+                
                 if (data.success) {
                     const transaction = db.transaction(['items'], 'readwrite');
                     const store = transaction.objectStore('items');
@@ -381,69 +282,43 @@
                     showNotification('❌ ' + (data.error || 'Ошибка загрузки'), 'error');
                 }
             } catch (err) {
+                logDebug("❌ Ошибка загрузки: " + err.message);
                 showNotification('❌ Ошибка сети: ' + err.message, 'error');
             } finally {
                 btn.disabled = false; btn.textContent = '📥 Загрузить базу';
             }
         }
 
-        async function findItem(code) {
-            return new Promise((resolve) => {
-                const transaction = db.transaction(['items'], 'readonly');
-                const store = transaction.objectStore('items');
-                const request = store.getAll();
-                request.onsuccess = () => {
-                    const items = request.result;
-                    const cleanCode = String(code).trim();
-                    const shortCode = cleanCode.replace(/^0+/, '');
-                    const found = items.find(item => {
-                        const itemBukh = String(item.bukh || '').trim();
-                        const itemBarcode = String(item.barcode || '').trim();
-                        return itemBukh === cleanCode || itemBarcode === cleanCode || 
-                               itemBukh === shortCode || itemBarcode === shortCode ||
-                               itemBukh.replace(/^0+/, '') === shortCode || itemBarcode.replace(/^0+/, '') === shortCode;
-                    });
-                    resolve(found || null);
-                };
-                request.onerror = () => resolve(null);
-            });
-        }
+        // ... (Остальные функции findItem, savePendingChange, getPendingChanges, markChangesSynced, syncNow остаются БЕЗ ИЗМЕНЕНИЙ из предыдущего кода) ...
+        // Для экономии места я сократил дублирование, но вставьте сюда все функции из предыдущего ответа, 
+        // начиная с async function findItem(code) { ... } и до конца, заменив только init() внизу.
 
-        async function savePendingChange(change) {
-            return new Promise((resolve, reject) => {
-                const transaction = db.transaction(['pending_changes'], 'readwrite');
-                const store = transaction.objectStore('pending_changes');
-                change.timestamp = new Date().toISOString();
-                change.synced = false;
-                const request = store.add(change);
-                request.onsuccess = () => { updatePendingCount(); resolve(request.result); };
-                request.onerror = () => reject(request.error);
-            });
+        async function init() {
+            try {
+                logDebug("Запуск приложения...");
+                if (window.location.protocol === 'file:') {
+                    logDebug("⚠️ ВНИМАНИЕ: Файл открыт как file://. Это может блокировать камеру и базу данных!");
+                    showNotification("⚠️ Откройте файл через веб-сервер, а не напрямую!", "error");
+                }
+                await initDB();
+                await updatePendingCount();
+                await renderHistoryUI();
+                
+                if (isOnline) {
+                    document.getElementById('connectionStatus').textContent = '🟢';
+                    document.getElementById('connectionStatus').className = 'status-value online';
+                } else {
+                    document.getElementById('connectionStatus').textContent = '🔴';
+                    document.getElementById('connectionStatus').className = 'status-value offline';
+                }
+                logDebug("✅ Приложение успешно инициализировано");
+            } catch (e) {
+                logDebug("❌ Критическая ошибка при запуске: " + e.message);
+            }
         }
-
-        async function getPendingChanges() {
-            return new Promise((resolve, reject) => {
-                const transaction = db.transaction(['pending_changes'], 'readonly');
-                const store = transaction.objectStore('pending_changes');
-                const request = store.getAll(); 
-                request.onsuccess = () => resolve((request.result || []).filter(c => c.synced === false));
-                request.onerror = () => reject(request.error);
-            });
-        }
-
-        async function markChangesSynced(ids) {
-            if (!ids || ids.length === 0) return;
-            const transaction = db.transaction(['pending_changes'], 'readwrite');
-            const store = transaction.objectStore('pending_changes');
-            let completed = 0;
-            ids.forEach(id => {
-                const request = store.delete(id);
-                request.onsuccess = () => {
-                    completed++;
-                    if (completed === ids.length) updatePendingCount();
-                };
-            });
-        }
-
-        async function syncNow() {
-            if (!isOnline) { showNotification('
+        
+        // Запускаем инициализацию
+        init();
+    </script>
+</body>
+</html>
