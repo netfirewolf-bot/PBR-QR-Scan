@@ -4,27 +4,55 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>QR Сканер СМР</title>
-    <!-- Подключаем библиотеку сканера -->
     <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
     <style>
         :root {
-            --primary: #2196F3; --success: #4CAF50; --danger: #F44336;
-            --bg: #F0F2F5; --card: #FFFFFF; --text: #333; --border: #E0E0E0;
+            --primary: #2196F3; --primary-dark: #1976D2;
+            --success: #4CAF50; --danger: #F44336; --warning: #FF9800;
+            --bg: #F0F2F5; --card: #FFFFFF; --text: #333333; --text-secondary: #666666; --border: #E0E0E0;
         }
         * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
-        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; padding: 12px; font-size: 14px; }
+        body { 
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif; 
+            background: var(--bg); color: var(--text); min-height: 100vh; 
+            padding-bottom: 70px; /* Место для нижней панели */
+            font-size: 14px;
+        }
         
-        .header { text-align: center; padding: 12px; background: var(--card); border-radius: 8px; border: 1px solid var(--border); margin-bottom: 12px; }
-        .header h1 { font-size: 18px; margin-bottom: 8px; }
-        .status-bar { display: flex; justify-content: space-around; background: #FAFAFA; padding: 8px; border-radius: 6px; font-size: 11px; }
-        .status-item { text-align: center; cursor: pointer; padding: 4px; }
-        .status-value { font-size: 16px; font-weight: bold; margin-bottom: 2px; }
+        /* Header */
+        .header { 
+            background: var(--card); border-bottom: 1px solid var(--border);
+            padding: 12px 16px; position: sticky; top: 0; z-index: 100;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        }
+        .header-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
+        .header h1 { font-size: 18px; font-weight: 600; color: var(--primary); }
+        .status-bar { display: flex; gap: 12px; font-size: 11px; color: var(--text-secondary); }
+        .status-item { display: flex; align-items: center; gap: 4px; cursor: pointer; }
+        .status-value { font-weight: bold; font-size: 14px; }
 
-        .card { background: var(--card); border: 1px solid var(--border); border-radius: 8px; padding: 14px; margin-bottom: 12px; }
-        .card-title { font-size: 15px; font-weight: 600; color: var(--primary); margin-bottom: 12px; border-bottom: 2px solid var(--primary); padding-bottom: 6px; }
+        /* Main Content & Tabs */
+        .tab-content { display: none; padding: 12px; animation: fadeIn 0.3s; }
+        .tab-content.active { display: block; }
 
-        .btn { width: 100%; padding: 12px; border: none; border-radius: 6px; font-size: 15px; font-weight: 600; cursor: pointer; margin-bottom: 8px; }
-        .btn:active { opacity: 0.8; }
+        /* Cards */
+        .card { 
+            background: var(--card); border: 1px solid var(--border);
+            border-radius: 8px; padding: 16px; margin-bottom: 12px; 
+            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+        }
+        .card-title { 
+            font-size: 15px; font-weight: 600; color: var(--primary); 
+            margin-bottom: 12px; padding-bottom: 8px; border-bottom: 2px solid var(--primary);
+        }
+
+        /* Buttons */
+        .btn { 
+            width: 100%; padding: 12px; border: none; border-radius: 6px; 
+            font-size: 14px; font-weight: 600; cursor: pointer; margin-bottom: 8px;
+            transition: opacity 0.2s;
+        }
+        .btn:active { opacity: 0.7; }
         .btn-primary { background: var(--primary); color: white; }
         .btn-success { background: var(--success); color: white; }
         .btn-danger { background: var(--danger); color: white; }
@@ -32,34 +60,70 @@
         .btn-row { display: flex; gap: 8px; }
         .btn-row .btn { margin-bottom: 0; }
 
-        .scanner-container { background: #000; border-radius: 8px; overflow: hidden; margin-bottom: 12px; min-height: 250px; border: 2px solid var(--border); }
+        /* Scanner */
+        .scanner-container { 
+            background: #000; border-radius: 8px; overflow: hidden; 
+            margin-bottom: 12px; min-height: 250px; border: 2px solid var(--border);
+        }
         #reader { width: 100%; }
-        
-        .input-group { display: flex; gap: 8px; margin-bottom: 12px; }
-        .input-group input { flex: 1; padding: 12px; border: 1px solid var(--border); border-radius: 6px; font-size: 16px; }
 
+        /* Forms */
+        .input-group { display: flex; gap: 8px; margin-bottom: 12px; }
+        .input-group input { 
+            flex: 1; padding: 12px; border: 1px solid var(--border); 
+            border-radius: 6px; font-size: 16px; background: #FAFAFA;
+        }
+        .form-group { margin-bottom: 12px; }
+        .form-group label { display: block; margin-bottom: 6px; font-weight: 600; font-size: 13px; color: var(--text-secondary); }
+        .form-group input, .form-group textarea { 
+            width: 100%; padding: 12px; border: 1px solid var(--border); 
+            border-radius: 6px; font-size: 16px; background: #FAFAFA;
+        }
+
+        /* Item Info Grid */
         .item-info { display: none; }
-        .item-info.show { display: block; animation: fadeIn 0.3s; }
+        .item-info.show { display: block; }
         .info-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 12px; }
-        .info-row { background: #FAFAFA; padding: 8px; border-radius: 6px; border: 1px solid var(--border); }
+        .info-row { background: #FAFAFA; padding: 10px; border-radius: 6px; border: 1px solid var(--border); }
         .info-row.full { grid-column: 1 / -1; }
-        .info-label { font-size: 11px; color: #666; text-transform: uppercase; margin-bottom: 4px; }
+        .info-label { font-size: 11px; color: var(--text-secondary); text-transform: uppercase; margin-bottom: 4px; }
         .info-value { font-size: 15px; font-weight: 500; word-break: break-word; }
         .info-value.highlight { color: var(--success); font-weight: bold; font-size: 18px; }
 
-        .edit-section { margin-top: 16px; padding-top: 16px; border-top: 1px solid var(--border); }
-        .form-group { margin-bottom: 12px; }
-        .form-group label { display: block; margin-bottom: 6px; font-weight: 600; font-size: 13px; color: #666; }
-        .form-group input, .form-group textarea { width: 100%; padding: 12px; border: 1px solid var(--border); border-radius: 6px; font-size: 16px; background: #FAFAFA; }
-
-        .debug-panel { 
-            display: none; margin-top: 12px; padding: 10px; background: #1e1e1e; color: #00ff00; 
-            font-family: monospace; font-size: 11px; border-radius: 6px; max-height: 200px; overflow-y: auto; 
+        /* Lists (History / Pending) */
+        .list-item { 
+            display: flex; justify-content: space-between; align-items: center;
+            padding: 12px; border-bottom: 1px solid var(--border); background: var(--card);
         }
-        .debug-panel.show { display: block; }
+        .list-item:last-child { border-bottom: none; }
+        .list-main { font-weight: 600; color: var(--text); }
+        .list-sub { font-size: 12px; color: var(--text-secondary); margin-top: 4px; }
+        .list-action { padding: 6px 12px; font-size: 12px; width: auto; margin: 0; }
 
+        /* Bottom Navigation */
+        .bottom-nav { 
+            position: fixed; bottom: 0; left: 0; right: 0; 
+            background: var(--card); border-top: 1px solid var(--border);
+            display: flex; justify-content: space-around; padding: 8px 0;
+            box-shadow: 0 -2px 10px rgba(0,0,0,0.05); z-index: 100;
+        }
+        .nav-item { 
+            display: flex; flex-direction: column; align-items: center; 
+            color: var(--text-secondary); text-decoration: none; font-size: 11px;
+            padding: 4px 12px; border-radius: 8px; cursor: pointer;
+        }
+        .nav-item.active { color: var(--primary); background: rgba(33, 150, 243, 0.1); }
+        .nav-icon { font-size: 20px; margin-bottom: 2px; }
+        .nav-badge { 
+            position: absolute; top: -2px; right: 8px; 
+            background: var(--danger); color: white; font-size: 10px; 
+            padding: 2px 6px; border-radius: 10px; font-weight: bold;
+        }
+        .nav-item { position: relative; }
+
+        /* Notifications & Debug */
         .notification { 
-            position: fixed; top: 12px; left: 50%; transform: translateX(-50%) translateY(-100px); 
+            position: fixed; top: 70px; left: 50%; transform: translateX(-50%) translateY(-100px); 
             padding: 12px 20px; border-radius: 6px; color: white; font-weight: 600; z-index: 1000; 
             font-size: 14px; max-width: 90%; text-align: center; transition: transform 0.3s;
         }
@@ -68,90 +132,138 @@
         .notification.error { background: var(--danger); }
         .notification.info { background: var(--primary); }
 
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        .debug-panel { 
+            display: none; margin-top: 12px; padding: 10px; background: #1e1e1e; color: #00ff00; 
+            font-family: monospace; font-size: 11px; border-radius: 6px; max-height: 150px; overflow-y: auto; 
+        }
+        .debug-panel.show { display: block; }
+
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
     </style>
 </head>
 <body>
+
+    <!-- Верхняя панель -->
     <div class="header">
-        <h1>QR Сканер СМР</h1>
-        <div class="status-bar">
-            <div class="status-item" onclick="toggleDebug()"><div class="status-value" id="connStatus">🔍</div><div>Сеть</div></div>
-            <div class="status-item" onclick="toggleDebug()"><div class="status-value" id="dbStatus">❌</div><div>База</div></div>
-            <div class="status-item" onclick="showPending()"><div class="status-value" id="pendingCount" style="color: var(--danger);">0</div><div>Ожидают</div></div>
+        <div class="header-top">
+            <h1>QR Сканер СМР</h1>
+            <div class="status-bar">
+                <div class="status-item" onclick="toggleDebug()">
+                    <span class="status-value" id="connStatus">🔍</span> Сеть
+                </div>
+                <div class="status-item" onclick="toggleDebug()">
+                    <span class="status-value" id="dbStatus">❌</span> База
+                </div>
+            </div>
         </div>
         <div class="debug-panel" id="debugPanel"></div>
     </div>
 
-    <div class="card">
-        <div class="card-title">🔄 Синхронизация</div>
-        <div class="btn-row">
-            <button class="btn btn-outline" id="btnDownload" onclick="app.downloadDB()">📥 Загрузить базу</button>
-            <button class="btn btn-success" id="btnSync" onclick="app.syncNow()">📤 Отправить (0)</button>
-        </div>
-        <button class="btn btn-outline" onclick="app.testConnection()" style="margin-top:8px; font-size:12px; padding:8px;">🔍 Проверить связь с сервером</button>
-    </div>
-
-    <div class="scanner-container">
-        <div id="reader"></div>
-    </div>
-    
-    <div class="btn-row">
-        <button class="btn btn-primary" onclick="app.startScanner()">▶️ Камера</button>
-        <button class="btn btn-danger" onclick="app.stopScanner()">⏹️ Стоп</button>
-    </div>
-
-    <div class="input-group">
-        <input type="text" id="manualCode" placeholder="Или введите артикул вручную...">
-        <button class="btn btn-primary" style="width: auto; margin: 0;" onclick="app.searchManual()">🔍</button>
-    </div>
-
-    <div class="card item-info" id="itemInfo">
-        <div class="card-title">ℹ️ Информация о позиции</div>
-        <div class="info-grid">
-            <div class="info-row"><div class="info-label">Бух. №</div><div class="info-value" id="infoBukh">-</div></div>
-            <div class="info-row"><div class="info-label">Ед. изм.</div><div class="info-value" id="infoUnit">-</div></div>
-            <div class="info-row full"><div class="info-label">Наименование</div><div class="info-value" id="infoName">-</div></div>
-            <div class="info-row"><div class="info-label">Остаток (1С)</div><div class="info-value" id="infoBalance">-</div></div>
-            <div class="info-row"><div class="info-label">Факт (SMR)</div><div class="info-value highlight" id="infoFact">-</div></div>
-            <div class="info-row full"><div class="info-label">Разница</div><div class="info-value" id="infoDiff" style="color:var(--danger); font-weight:bold;">-</div></div>
+    <!-- Вкладка 1: Сканер -->
+    <div id="tab-scanner" class="tab-content active">
+        <div class="card">
+            <div class="card-title">📷 Сканер</div>
+            <div class="scanner-container"><div id="reader"></div></div>
+            <div class="btn-row">
+                <button class="btn btn-primary" onclick="app.startScanner()">▶️ Камера</button>
+                <button class="btn btn-outline" onclick="app.toggleFlash()" id="btnFlash">🔦 Вспышка</button>
+                <button class="btn btn-danger" onclick="app.stopScanner()">⏹️ Стоп</button>
+            </div>
         </div>
 
-        <div class="edit-section">
-            <div class="card-title" style="margin-top:0;">✏️ Редактирование</div>
+        <div class="card">
+            <div class="card-title">⌨️ Ручной ввод</div>
+            <div class="input-group">
+                <input type="text" id="manualCode" placeholder="Введите артикул..." inputmode="text">
+                <button class="btn btn-primary" style="width: auto; margin: 0;" onclick="app.searchManual()">🔍</button>
+            </div>
+        </div>
+
+        <div class="card item-info" id="itemInfo">
+            <div class="card-title">ℹ️ Позиция</div>
+            <div class="info-grid">
+                <div class="info-row"><div class="info-label">Бух. №</div><div class="info-value" id="infoBukh">-</div></div>
+                <div class="info-row"><div class="info-label">Ед. изм.</div><div class="info-value" id="infoUnit">-</div></div>
+                <div class="info-row full"><div class="info-label">Наименование</div><div class="info-value" id="infoName">-</div></div>
+                <div class="info-row"><div class="info-label">Остаток (1С)</div><div class="info-value" id="infoBalance">-</div></div>
+                <div class="info-row"><div class="info-label">Факт (SMR)</div><div class="info-value highlight" id="infoFact">-</div></div>
+            </div>
+
+            <div class="card-title" style="margin-top:16px;">✏️ Корректировка</div>
             <div class="form-group">
                 <label>Фактическое количество:</label>
                 <input type="number" id="editFact" step="0.001" inputmode="decimal">
             </div>
             <div class="form-group">
+                <label>Контейнер / Площадка:</label>
+                <input type="text" id="editContainer" inputmode="text">
+            </div>
+            <div class="form-group">
+                <label>Полка / Место:</label>
+                <input type="text" id="editShelf" inputmode="text">
+            </div>
+            <div class="form-group">
                 <label>Примечание:</label>
                 <textarea id="editNote" rows="2"></textarea>
             </div>
-            <button class="btn btn-success" onclick="app.saveData()">💾 Сохранить изменения</button>
-        </div</div>
+            <button class="btn btn-success" onclick="app.saveData()">💾 Сохранить в очередь</button>
+        </div>
+    </div>
+
+    <!-- Вкладка 2: История -->
+    <div id="tab-history" class="tab-content">
+        <div class="card">
+            <div class="card-title" style="display:flex; justify-content:space-between; align-items:center;">
+                📋 История сканирования
+                <button class="btn btn-outline list-action" onclick="app.clearHistory()">🗑️ Очистить</button>
+            </div>
+            <div id="historyList"></div>
+        </div>
+    </div>
+
+    <!-- Вкладка 3: Очередь отправки -->
+    <div id="tab-pending" class="tab-content">
+        <div class="card">
+            <div class="card-title">⏳ Ожидают отправки</div>
+            <div id="pendingList"></div>
+            <button class="btn btn-success" onclick="app.syncNow()" style="margin-top: 12px;">📤 Отправить все на сервер</button>
+        </div>
+    </div>
+
+    <!-- Нижняя навигация -->
+    <div class="bottom-nav">
+        <div class="nav-item active" onclick="app.switchTab('scanner', this)">
+            <span class="nav-icon">📷</span>
+            <span>Сканер</span>
+        </div>
+        <div class="nav-item" onclick="app.switchTab('history', this)">
+            <span class="nav-icon">📋</span>
+            <span>История</span>
+        </div>
+        <div class="nav-item" onclick="app.switchTab('pending', this)">
+            <span class="nav-icon">📤</span>
+            <span>Очередь</span>
+            <span class="nav-badge" id="navBadge" style="display:none;">0</span>
+        </div>
+    </div>
 
     <div class="notification" id="notification"></div>
 
     <script>
-        // ==========================================
-        // КОНФИГУРАЦИЯ
-        // ==========================================
         const CONFIG = {
-            // ВАЖНО: В Google Apps Script должно быть: "Выполнять от имени: Меня", "У кого есть доступ: Все"
             API_URL: 'https://script.google.com/macros/s/AKfycbweJIgm-XwGb6N6hWJIEb4eAuwBBP_PyG0i_9GG2S3l9i97NNbbz3QV1jN-MjwFA74b/exec',
-            DB_NAME: 'SMR_QR_DB_v2'
+            DB_NAME: 'SMR_QR_DB_v3'
         };
 
-        // ==========================================
-        // ОСНОВНОЙ КЛАСС ПРИЛОЖЕНИЯ
-        // ==========================================
         class ScannerApp {
             constructor() {
                 this.db = null;
                 this.currentItem = null;
                 this.html5QrCode = null;
                 this.isOnline = navigator.onLine;
+                this.isTorchOn = false;
+                this.videoTrack = null;
                 
-                // Привязка событий
                 window.addEventListener('online', () => this.updateNetworkStatus(true));
                 window.addEventListener('offline', () => this.updateNetworkStatus(false));
                 document.getElementById('manualCode').addEventListener('keypress', (e) => {
@@ -165,7 +277,6 @@
                 const color = type === 'error' ? '#ff4444' : (type === 'success' ? '#00ff00' : '#00ff00');
                 panel.innerHTML += `<div style="color:${color}">[${time}] ${msg}</div>`;
                 panel.scrollTop = panel.scrollHeight;
-                console.log(`[${type.toUpperCase()}] ${msg}`);
             }
 
             notify(msg, type = 'info') {
@@ -175,14 +286,25 @@
                 setTimeout(() => el.classList.remove('show'), 3000);
             }
 
+            switchTab(tabName, navElement) {
+                document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+                document.getElementById(`tab-${tabName}`).classList.add('active');
+                document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
+                if (navElement) navElement.classList.add('active');
+                
+                if (tabName === 'history') this.renderHistory();
+                if (tabName === 'pending') this.renderPending();
+                
+                // Останавливаем камеру при уходе со вкладки сканера для экономии батареи
+                if (tabName !== 'scanner') this.stopScanner();
+            }
+
             async init() {
                 this.log("Запуск приложения...");
                 this.updateNetworkStatus(this.isOnline);
                 
-                // Проверка протокола
                 if (window.location.protocol === 'file:') {
-                    this.log("⚠️ ОШИБКА: Файл открыт как file://. Камера и База данных НЕ БУДУТ работать!", "error");
-                    this.notify("⚠️ Откройте через веб-сервер или GitHub Pages!", "error");
+                    this.notify("⚠️ Откройте через GitHub Pages!", "error");
                     return;
                 }
 
@@ -191,38 +313,25 @@
                     await this.updatePendingCount();
                     this.log("✅ Приложение успешно инициализировано", "success");
                 } catch (e) {
-                    this.log(`❌ Критическая ошибка инициализации: ${e.message}`, "error");
-                    this.notify("❌ Ошибка запуска. Проверьте консоль/отладку.", "error");
+                    this.log(`❌ Ошибка инициализации: ${e.message}`, "error");
                 }
             }
 
             async initDB() {
                 return new Promise((resolve, reject) => {
-                    if (!window.indexedDB) {
-                        reject(new Error("Ваш браузер не поддерживает IndexedDB"));
-                        return;
-                    }
-                    this.log("Открытие базы данных...");
-                    const request = indexedDB.open(CONFIG.DB_NAME, 1);
-                    
-                    request.onerror = (e) => {
-                        this.log(`❌ Ошибка БД: ${e.target.error.name}`, "error");
-                        reject(e.target.error);
-                    };
-                    
+                    const request = indexedDB.open(CONFIG.DB_NAME, 2);
+                    request.onerror = (e) => reject(e.target.error);
                     request.onsuccess = (e) => {
                         this.db = e.target.result;
-                        this.log("✅ База данных открыта", "success");
                         this.updateDBStatus().then(resolve);
                     };
-                    
                     request.onupgradeneeded = (e) => {
                         const db = e.target.result;
-                        if (!db.objectStoreNames.contains('items')) {
-                            db.createObjectStore('items', { keyPath: 'bukh' });
-                        }
-                        if (!db.objectStoreNames.contains('pending')) {
-                            db.createObjectStore('pending', { keyPath: 'id', autoIncrement: true });
+                        if (!db.objectStoreNames.contains('items')) db.createObjectStore('items', { keyPath: 'bukh' });
+                        if (!db.objectStoreNames.contains('pending')) db.createObjectStore('pending', { keyPath: 'id', autoIncrement: true });
+                        if (!db.objectStoreNames.contains('history')) {
+                            const hStore = db.createObjectStore('history', { keyPath: 'id', autoIncrement: true });
+                            hStore.createIndex('timestamp', 'timestamp', { unique: false });
                         }
                     };
                 });
@@ -230,66 +339,67 @@
 
             async updateDBStatus() {
                 if (!this.db) return;
-                const tx = this.db.transaction(['items'], 'readonly');
-                const store = tx.objectStore('items');
-                const req = store.count();
+                const req = this.db.transaction(['items'], 'readonly').objectStore('items').count();
                 req.onsuccess = () => {
-                    const count = req.result;
                     const el = document.getElementById('dbStatus');
-                    if (count > 0) {
-                        el.textContent = `✅ (${count})`;
-                        el.style.color = 'var(--success)';
-                    } else {
-                        el.textContent = '❌ (0)';
-                        el.style.color = 'var(--danger)';
-                    }
+                    el.textContent = req.result > 0 ? `✅ (${req.result})` : '❌ (0)';
+                    el.style.color = req.result > 0 ? 'var(--success)' : 'var(--danger)';
                 };
             }
 
             updateNetworkStatus(online) {
                 this.isOnline = online;
                 const el = document.getElementById('connStatus');
-                if (online) {
-                    el.textContent = '🟢';
-                    el.style.color = 'var(--success)';
-                    this.notify("🟢 Сеть подключена", "success");
-                } else {
-                    el.textContent = '🔴';
-                    el.style.color = 'var(--danger)';
-                    this.notify("🔴 Работа в оффлайн", "info");
-                }
+                el.textContent = online ? '🟢' : '🔴';
+                el.style.color = online ? 'var(--success)' : 'var(--danger)';
             }
 
-            // --- СКАНЕР ---
+            // === СКАНЕР И ВСПЫШКА ===
             startScanner() {
                 if (this.html5QrCode && this.html5QrCode.isScanning) return;
-                
-                this.log("Запуск камеры...");
                 this.html5QrCode = new Html5Qrcode("reader");
-                
                 this.html5QrCode.start(
                     { facingMode: "environment" },
                     { fps: 10, qrbox: { width: 250, height: 250 } },
                     (decodedText) => this.onScanSuccess(decodedText),
-                    (errorMessage) => { /* Игнорируем ошибки кадров */ }
-                ).catch(err => {
-                    this.log(`❌ Ошибка камеры: ${err}`, "error");
-                    this.notify("❌ Нет доступа к камере. Проверьте HTTPS и разрешения.", "error");
-                });
+                    () => {}
+                ).then(() => {
+                    const videoElement = document.querySelector('#reader video');
+                    if (videoElement && videoElement.srcObject) {
+                        this.videoTrack = videoElement.srcObject.getVideoTracks()[0];
+                    }
+                    document.getElementById('btnFlash').textContent = '🔦 Вспышка';
+                    this.isTorchOn = false;
+                }).catch(err => this.notify("❌ Нет доступа к камере", "error"));
             }
 
             stopScanner() {
                 if (this.html5QrCode && this.html5QrCode.isScanning) {
                     this.html5QrCode.stop().then(() => {
                         this.html5QrCode.clear();
-                        this.log("Камера остановлена");
+                        this.isTorchOn = false;
+                        this.videoTrack = null;
                     });
                 }
             }
 
+            async toggleFlash() {
+                if (!this.videoTrack) { this.notify("⚠️ Сначала запустите камеру", "error"); return; }
+                try {
+                    const capabilities = this.videoTrack.getCapabilities();
+                    if (capabilities.torch) {
+                        this.isTorchOn = !this.isTorchOn;
+                        await this.videoTrack.applyConstraints({ advanced: [{ torch: this.isTorchOn }] });
+                        document.getElementById('btnFlash').textContent = this.isTorchOn ? '💡 Выкл. вспышку' : '🔦 Вспышка';
+                    } else {
+                        this.notify("⚠️ Вспышка не поддерживается", "error");
+                    }
+                } catch (err) { this.notify("❌ Ошибка вспышки", "error"); }
+            }
+
             async onScanSuccess(code) {
                 if (navigator.vibrate) navigator.vibrate(100);
-                this.stopScanner(); // Останавливаем после успешного скана
+                this.stopScanner();
                 document.getElementById('manualCode').value = code;
                 await this.processScan(code);
             }
@@ -307,22 +417,20 @@
                     if (item) {
                         this.currentItem = item;
                         this.displayItem(item);
+                        await this.addToHistory(code, item.name);
                         this.notify("✅ Найдено", "success");
                         setTimeout(() => document.getElementById('editFact').focus(), 300);
                     } else {
                         this.notify(`⚠️ Не найдено: ${code}`, "error");
                         document.getElementById('itemInfo').classList.remove('show');
+                        await this.addToHistory(code, "Не найдено");
                     }
-                } catch (e) {
-                    this.log(`Ошибка поиска: ${e.message}`, "error");
-                }
+                } catch (e) { this.log(`Ошибка: ${e.message}`, "error"); }
             }
 
             findItem(code) {
                 return new Promise((resolve) => {
-                    const tx = this.db.transaction(['items'], 'readonly');
-                    const store = tx.objectStore('items');
-                    const req = store.getAll();
+                    const req = this.db.transaction(['items'], 'readonly').objectStore('items').getAll();
                     req.onsuccess = () => {
                         const cleanCode = String(code).trim().replace(/^0+/, '');
                         const found = req.result.find(item => {
@@ -331,7 +439,6 @@
                         });
                         resolve(found || null);
                     };
-                    req.onerror = () => resolve(null);
                 });
             }
 
@@ -342,10 +449,9 @@
                 document.getElementById('infoBalance').textContent = Number(item.balance || 0).toFixed(3);
                 document.getElementById('infoFact').textContent = Number(item.fact || 0).toFixed(3);
                 
-                const diff = (item.balance || 0) - (item.fact || 0);
-                document.getElementById('infoDiff').textContent = diff.toFixed(3);
-                
                 document.getElementById('editFact').value = item.fact || '';
+                document.getElementById('editContainer').value = item.container || '';
+                document.getElementById('editShelf').value = item.shelf || '';
                 document.getElementById('editNote').value = item.note || '';
                 
                 document.getElementById('itemInfo').classList.add('show');
@@ -355,163 +461,184 @@
             async saveData() {
                 if (!this.currentItem) { this.notify("⚠️ Сначала отсканируйте товар", "error"); return; }
                 
-                const fact = parseFloat(document.getElementById('editFact').value) || 0;
-                const note = document.getElementById('editNote').value;
-                
                 const change = {
                     code: this.currentItem.bukh,
-                    fact: fact,
-                    note: note,
+                    fact: parseFloat(document.getElementById('editFact').value) || 0,
+                    container: document.getElementById('editContainer').value.trim(),
+                    shelf: document.getElementById('editShelf').value.trim(),
+                    note: document.getElementById('editNote').value.trim(),
                     timestamp: new Date().toISOString(),
                     synced: false
                 };
 
                 try {
-                    // 1. Сохраняем в очередь отправки
-                    const tx1 = this.db.transaction(['pending'], 'readwrite');
-                    tx1.objectStore('pending').add(change);
+                    this.db.transaction(['pending'], 'readwrite').objectStore('pending').add(change);
                     
-                    // 2. Обновляем локальную базу для мгновенного отображения
-                    const tx2 = this.db.transaction(['items'], 'readwrite');
-                    const store = tx2.objectStore('items');
-                    const updatedItem = { ...this.currentItem, fact: fact, note: note };
+                    const store = this.db.transaction(['items'], 'readwrite').objectStore('items');
+                    const updatedItem = { ...this.currentItem, fact: change.fact, container: change.container, shelf: change.shelf, note: change.note };
                     store.put(updatedItem);
                     this.currentItem = updatedItem;
-                    
                     this.displayItem(this.currentItem);
+                    
                     await this.updatePendingCount();
                     this.notify("✅ Сохранено локально", "success");
                     
-                    if (this.isOnline) {
-                        setTimeout(() => this.syncNow(), 1000);
-                    }
-                } catch (e) {
-                    this.log(`Ошибка сохранения: ${e.message}`, "error");
-                    this.notify("❌ Ошибка сохранения", "error");
-                }
+                    // Автоочистка полей для следующего сканирования
+                    document.getElementById('editFact').value = '';
+                    document.getElementById('editContainer').value = '';
+                    document.getElementById('editShelf').value = '';
+                    document.getElementById('editNote').value = '';
+                    document.getElementById('manualCode').value = '';
+                    document.getElementById('itemInfo').classList.remove('show');
+
+                    if (this.isOnline) setTimeout(() => this.syncNow(), 1000);
+                } catch (e) { this.notify("❌ Ошибка сохранения", "error"); }
             }
 
-            // --- СИНХРОНИЗАЦИЯ ---
-            async testConnection() {
-                this.notify("Проверка связи...", "info");
-                this.log("Тест соединения с: " + CONFIG.API_URL);
-                try {
-                    const response = await fetch(CONFIG.API_URL + '?action=ping', { method: 'GET', mode: 'cors' });
-                    this.log(`Ответ сервера: ${response.status} ${response.statusText}`, "success");
-                    this.notify("✅ Связь с сервером есть!", "success");
-                } catch (err) {
-                    this.log(`❌ Ошибка сети: ${err.message}. Возможно, CORS или скрипт не опубликован как "Все"`, "error");
-                    this.notify("❌ Нет связи. Проверьте URL и настройки GAS.", "error");
-                }
-            }
-
-            async downloadDB() {
-                const btn = document.getElementById('btnDownload');
-                btn.disabled = true; btn.textContent = '⏳ Загрузка...';
-                this.notify('⏳ Загрузка базы...', 'info');
+            // === ИСТОРИЯ ===
+            async addToHistory(code, name) {
+                const tx = this.db.transaction(['history'], 'readwrite');
+                tx.objectStore('history').add({ code, name: name || 'Неизвестно', timestamp: Date.now() });
                 
-                try {
-                    const response = await fetch(CONFIG.API_URL + '?action=getItems', { mode: 'cors' });
-                    if (!response.ok) throw new Error(`HTTP ${response.status}`);
-                    const data = await response.json();
-                    
-                    if (data.success && data.items) {
-                        const tx = this.db.transaction(['items'], 'readwrite');
-                        const store = tx.objectStore('items');
-                        store.clear();
-                        data.items.forEach(item => { if(item.bukh) store.put(item); });
-                        
-                        tx.oncomplete = async () => {
-                            await this.updateDBStatus();
-                            this.notify(`✅ Загружено ${data.items.length} позиций`, 'success');
-                        };
-                    } else {
-                        throw new Error(data.error || 'Неверный формат ответа');
+                // Очистка старой истории (оставляем последние 100 записей)
+                const req = tx.objectStore('history').getAll();
+                req.onsuccess = () => {
+                    if (req.result.length > 100) {
+                        const toDelete = req.result.slice(0, req.result.length - 100);
+                        const delTx = this.db.transaction(['history'], 'readwrite');
+                        toDelete.forEach(item => delTx.objectStore('history').delete(item.id));
                     }
-                } catch (err) {
-                    this.log(`Ошибка загрузки: ${err.message}`, "error");
-                    this.notify(`❌ Ошибка: ${err.message}`, "error");
-                } finally {
-                    btn.disabled = false; btn.textContent = '📥 Загрузить базу';
-                }
+                };
+            }
+
+            renderHistory() {
+                const req = this.db.transaction(['history'], 'readonly').objectStore('history').getAll();
+                req.onsuccess = () => {
+                    const records = (req.result || []).sort((a, b) => b.timestamp - a.timestamp).slice(0, 50);
+                    const container = document.getElementById('historyList');
+                    if (records.length === 0) {
+                        container.innerHTML = '<div style="padding:20px; text-align:center; color:#999;">История пуста</div>';
+                        return;
+                    }
+                    container.innerHTML = records.map(item => {
+                        const d = new Date(item.timestamp);
+                        return `<div class="list-item">
+                            <div><div class="list-main">${item.code}</div><div class="list-sub">${item.name} • ${d.toLocaleTimeString()}</div></div>
+                        </div>`;
+                    }).join('');
+                };
+            }
+
+            clearHistory() {
+                if (!confirm('Очистить историю?')) return;
+                this.db.transaction(['history'], 'readwrite').objectStore('history').clear();
+                this.renderHistory();
+                this.notify("🗑️ История очищена", "info");
+            }
+
+            // === ОЧЕРЕДЬ И СИНХРОНИЗАЦИЯ ===
+            async renderPending() {
+                const req = this.db.transaction(['pending'], 'readonly').objectStore('pending').getAll();
+                req.onsuccess = () => {
+                    const changes = (req.result || []).filter(c => !c.synced);
+                    const container = document.getElementById('pendingList');
+                    if (changes.length === 0) {
+                        container.innerHTML = '<div style="padding:20px; text-align:center; color:#999;">Очередь пуста</div>';
+                        return;
+                    }
+                    container.innerHTML = changes.map(c => {
+                        const d = new Date(c.timestamp);
+                        return `<div class="list-item">
+                            <div>
+                                <div class="list-main">${c.code} | Факт: ${c.fact}</div>
+                                <div class="list-sub">${c.container || 'Без контейнера'} • ${d.toLocaleTimeString()}</div>
+                            </div>
+                            <button class="btn btn-danger list-action" onclick="app.deletePending(${c.id})">✕</button>
+                        </div>`;
+                    }).join('');
+                };
+            }
+
+            async deletePending(id) {
+                this.db.transaction(['pending'], 'readwrite').objectStore('pending').delete(id);
+                this.updatePendingCount();
+                this.renderPending();
+                this.notify("Запись удалена", "info");
+            }
+
+            async updatePendingCount() {
+                const req = this.db.transaction(['pending'], 'readonly').objectStore('pending').getAll();
+                req.onsuccess = () => {
+                    const count = (req.result || []).filter(c => !c.synced).length;
+                    document.getElementById('pendingCount').textContent = count;
+                    const badge = document.getElementById('navBadge');
+                    badge.textContent = count;
+                    badge.style.display = count > 0 ? 'block' : 'none';
+                };
             }
 
             async syncNow() {
                 if (!this.isOnline) { this.notify("🔴 Нет сети", "error"); return; }
-                
-                const btn = document.getElementById('btnSync');
-                btn.disabled = true; btn.textContent = '⏳ Отправка...';
                 this.notify('⏳ Отправка...', 'info');
                 
                 try {
-                    const tx = this.db.transaction(['pending'], 'readwrite');
-                    const store = tx.objectStore('pending');
-                    const req = store.getAll();
-                    
+                    const req = this.db.transaction(['pending'], 'readonly').objectStore('pending').getAll();
                     req.onsuccess = async () => {
-                        const changes = req.result.filter(c => !c.synced);
-                        if (changes.length === 0) {
-                            this.notify("✅ Нечего отправлять", "success");
-                            btn.disabled = false; btn.textContent = '📤 Отправить (0)';
-                            return;
-                        }
+                        const changes = (req.result || []).filter(c => !c.synced);
+                        if (changes.length === 0) { this.notify("✅ Нечего отправлять", "success"); return; }
                         
                         const response = await fetch(CONFIG.API_URL, {
-                            method: 'POST',
-                            mode: 'cors',
+                            method: 'POST', mode: 'cors',
                             headers: { 'Content-Type': 'text/plain;charset=utf-8' },
                             body: JSON.stringify({ action: 'batchUpdate', updates: changes })
                         });
                         
                         const result = await response.json();
                         if (result.success) {
-                            // Помечаем как отправленные
-                            const tx2 = this.db.transaction(['pending'], 'readwrite');
-                            const store2 = tx2.objectStore('pending');
-                            changes.forEach(c => store2.delete(c.id));
-                            
-                            tx2.oncomplete = () => {
+                            const tx = this.db.transaction(['pending'], 'readwrite');
+                            const store = tx.objectStore('pending');
+                            changes.forEach(c => store.delete(c.id));
+                            tx.oncomplete = () => {
                                 this.updatePendingCount();
+                                this.renderPending();
                                 this.notify(`✅ Отправлено ${changes.length} изм.`, "success");
                             };
-                        } else {
-                            throw new Error(result.error || 'Ошибка сервера');
-                        }
+                        } else { throw new Error(result.error); }
                     };
-                } catch (err) {
-                    this.log(`Ошибка синхронизации: ${err.message}`, "error");
-                    this.notify(`❌ Ошибка отправки: ${err.message}`, "error");
-                } finally {
-                    btn.disabled = false;
-                    this.updatePendingCount();
-                }
+                } catch (err) { this.notify(`❌ Ошибка: ${err.message}`, "error"); }
             }
 
-            async updatePendingCount() {
-                const tx = this.db.transaction(['pending'], 'readonly');
-                const store = tx.objectStore('pending');
-                const req = store.getAll();
-                req.onsuccess = () => {
-                    const count = req.result.filter(c => !c.synced).length;
-                    document.getElementById('pendingCount').textContent = count;
-                    document.getElementById('btnSync').textContent = `📤 Отправить (${count})`;
-                };
+            async testConnection() {
+                this.notify("Проверка связи...", "info");
+                try {
+                    const res = await fetch(CONFIG.API_URL + '?action=ping', { method: 'GET', mode: 'cors' });
+                    this.notify(res.ok ? "✅ Связь есть!" : "❌ Ошибка сервера", res.ok ? "success" : "error");
+                } catch (err) { this.notify("❌ Нет связи", "error"); }
             }
 
-            showPending() {
-                this.notify("Функция просмотра очереди в разработке", "info");
+            async downloadDB() {
+                const btn = document.getElementById('btnDownload');
+                btn.disabled = true; btn.textContent = '⏳ Загрузка...';
+                try {
+                    const res = await fetch(CONFIG.API_URL + '?action=getItems', { mode: 'cors' });
+                    const data = await res.json();
+                    if (data.success && data.items) {
+                        const tx = this.db.transaction(['items'], 'readwrite');
+                        const store = tx.objectStore('items');
+                        store.clear();
+                        data.items.forEach(item => { if(item.bukh) store.put(item); });
+                        tx.oncomplete = () => {
+                            this.updateDBStatus();
+                            this.notify(`✅ Загружено ${data.items.length}`, 'success');
+                        };
+                    }
+                } catch (err) { this.notify(`❌ Ошибка: ${err.message}`, "error"); }
+                finally { btn.disabled = false; btn.textContent = '📥 Загрузить базу'; }
             }
         }
 
-        // ==========================================
-        // ИНИЦИАЛИЗАЦИЯ
-        // ==========================================
         const app = new ScannerApp();
-        
-        // Ждем полной загрузки DOM перед запуском
-        document.addEventListener('DOMContentLoaded', () => {
-            app.init();
-        });
+        document.addEventListener('DOMContentLoaded', () => app.init());
 
         function toggleDebug() {
             document.getElementById('debugPanel').classList.toggle('show');
