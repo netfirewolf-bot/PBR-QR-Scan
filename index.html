@@ -48,8 +48,8 @@
 
         /* Buttons */
         .btn { 
-            width: 100%; padding: 12px; border: none; border-radius: 6px; 
-            font-size: 14px; font-weight: 600; cursor: pointer; margin-bottom: 8px;
+            width: 100%; padding: 14px; border: none; border-radius: 6px; 
+            font-size: 15px; font-weight: 600; cursor: pointer; margin-bottom: 8px;
             transition: opacity 0.2s;
         }
         .btn:active { opacity: 0.7; }
@@ -161,6 +161,18 @@
 
     <!-- Вкладка 1: Сканер -->
     <div id="tab-scanner" class="tab-content active">
+        <!-- КАРТОЧКА СИНХРОНИЗАЦИИ С КРУПНОЙ КНОПКОЙ ЗАГРУЗКИ -->
+        <div class="card">
+            <div class="card-title">🔄 Синхронизация</div>
+            <button class="btn btn-primary" id="btnDownload" onclick="app.downloadDB()" style="margin-bottom: 8px;">
+                📥 Загрузить базу с сервера
+            </button>
+            <div class="btn-row">
+                <button class="btn btn-success" id="btnSync" onclick="app.syncNow()">📤 Отправить изменения (0)</button>
+                <button class="btn btn-outline" onclick="app.testConnection()">🔍 Проверка связи</button>
+            </div>
+        </div>
+
         <div class="card">
             <div class="card-title">📷 Сканер</div>
             <div class="scanner-container"><div id="reader"></div></div>
@@ -294,20 +306,16 @@
                 
                 if (tabName === 'history') this.renderHistory();
                 if (tabName === 'pending') this.renderPending();
-                
-                // Останавливаем камеру при уходе со вкладки сканера для экономии батареи
                 if (tabName !== 'scanner') this.stopScanner();
             }
 
             async init() {
                 this.log("Запуск приложения...");
                 this.updateNetworkStatus(this.isOnline);
-                
                 if (window.location.protocol === 'file:') {
                     this.notify("⚠️ Откройте через GitHub Pages!", "error");
                     return;
                 }
-
                 try {
                     await this.initDB();
                     await this.updatePendingCount();
@@ -483,7 +491,6 @@
                     await this.updatePendingCount();
                     this.notify("✅ Сохранено локально", "success");
                     
-                    // Автоочистка полей для следующего сканирования
                     document.getElementById('editFact').value = '';
                     document.getElementById('editContainer').value = '';
                     document.getElementById('editShelf').value = '';
@@ -500,7 +507,6 @@
                 const tx = this.db.transaction(['history'], 'readwrite');
                 tx.objectStore('history').add({ code, name: name || 'Неизвестно', timestamp: Date.now() });
                 
-                // Очистка старой истории (оставляем последние 100 записей)
                 const req = tx.objectStore('history').getAll();
                 req.onsuccess = () => {
                     if (req.result.length > 100) {
@@ -570,7 +576,6 @@
                 const req = this.db.transaction(['pending'], 'readonly').objectStore('pending').getAll();
                 req.onsuccess = () => {
                     const count = (req.result || []).filter(c => !c.synced).length;
-                    document.getElementById('pendingCount').textContent = count;
                     const badge = document.getElementById('navBadge');
                     badge.textContent = count;
                     badge.style.display = count > 0 ? 'block' : 'none';
@@ -616,24 +621,38 @@
                 } catch (err) { this.notify("❌ Нет связи", "error"); }
             }
 
+            // === ЗАГРУЗКА БАЗЫ ===
             async downloadDB() {
                 const btn = document.getElementById('btnDownload');
-                btn.disabled = true; btn.textContent = '⏳ Загрузка...';
+                btn.disabled = true; 
+                btn.textContent = '⏳ Загрузка базы...';
+                this.notify('⏳ Загрузка данных с сервера...', 'info');
+                
                 try {
                     const res = await fetch(CONFIG.API_URL + '?action=getItems', { mode: 'cors' });
+                    if (!res.ok) throw new Error(`HTTP ${res.status}`);
                     const data = await res.json();
+                    
                     if (data.success && data.items) {
                         const tx = this.db.transaction(['items'], 'readwrite');
                         const store = tx.objectStore('items');
                         store.clear();
                         data.items.forEach(item => { if(item.bukh) store.put(item); });
+                        
                         tx.oncomplete = () => {
                             this.updateDBStatus();
-                            this.notify(`✅ Загружено ${data.items.length}`, 'success');
+                            this.notify(`✅ Успешно загружено ${data.items.length} позиций`, 'success');
                         };
+                    } else {
+                        throw new Error(data.error || 'Неверный формат ответа');
                     }
-                } catch (err) { this.notify(`❌ Ошибка: ${err.message}`, "error"); }
-                finally { btn.disabled = false; btn.textContent = '📥 Загрузить базу'; }
+                } catch (err) { 
+                    this.log(`Ошибка загрузки: ${err.message}`, "error");
+                    this.notify(`❌ Ошибка загрузки: ${err.message}`, "error"); 
+                } finally { 
+                    btn.disabled = false; 
+                    btn.textContent = '📥 Загрузить базу с сервера'; 
+                }
             }
         }
 
