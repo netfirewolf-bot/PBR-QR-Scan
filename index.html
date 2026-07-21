@@ -68,7 +68,7 @@
         .list-main { font-weight: 600; color: var(--text); font-size: 15px; }
         .list-sub { font-size: 12px; color: var(--text-secondary); margin-top: 4px; }
         .list-action { padding: 6px 12px; font-size: 12px; width: auto; margin: 0; }
-        .debug-panel { display: none; margin-top: 12px; padding: 10px; background: #1e1e1e; color: #00ff00; font-family: monospace; font-size: 11px; border-radius: 6px; max-height: 200px; overflow-y: auto; }
+        .debug-panel { display: none; margin-top: 12px; padding: 10px; background: #1e1e1e; color: #00ff00; font-family: monospace; font-size: 11px; border-radius: 6px; max-height: 250px; overflow-y: auto; }
         .debug-panel.show { display: block; }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
     </style>
@@ -100,11 +100,11 @@
             <div class="btn-row">
                 <button class="btn btn-primary" onclick="app.startScanner()">▶️ Камера</button>
                 <button class="btn btn-outline" onclick="app.toggleFlash()" id="btnFlash">🔦 Вспышка</button>
-                <button class="btn btn-danger" onclick="app.stopScanner()">️ Стоп</button>
+                <button class="btn btn-danger" onclick="app.stopScanner()">⏹️ Стоп</button>
             </div>
         </div>
         <div class="card">
-            <div class="card-title">️ Ручной ввод</div>
+            <div class="card-title">⌨️ Ручной ввод</div>
             <div class="input-group">
                 <input type="text" id="manualCode" placeholder="Введите бух. код..." inputmode="text">
                 <button class="btn btn-primary" style="width: 60px; margin: 0; padding: 12px;" onclick="app.searchManual()">🔍</button>
@@ -128,7 +128,7 @@
                     <button class="quick-btn" onclick="app.adjustFact(1)">➕ +1</button>
                 </div>
             </div>
-            <div class="form-group"><label> Контейнер:</label><input type="text" id="editContainer" inputmode="text"></div>
+            <div class="form-group"><label>📍 Контейнер:</label><input type="text" id="editContainer" inputmode="text"></div>
             <div class="form-group"><label>📌 Полка/Место:</label><input type="text" id="editShelf" inputmode="text"></div>
             <div class="form-group voice-input-container">
                 <label>📝 Примечание:</label>
@@ -156,15 +156,15 @@
 
     <div class="bottom-nav">
         <div class="nav-item active" onclick="app.switchTab('scanner', this)"><span class="nav-icon">📷</span><span>Сканер</span></div>
-        <div class="nav-item" onclick="app.switchTab('history', this)"><span class="nav-icon"></span><span>История</span></div>
+        <div class="nav-item" onclick="app.switchTab('history', this)"><span class="nav-icon">📋</span><span>История</span></div>
         <div class="nav-item" onclick="app.switchTab('pending', this)"><span class="nav-icon">📤</span><span>Очередь</span><span class="nav-badge" id="navBadge" style="display:none;">0</span></div>
     </div>
     <div class="notification" id="notification"></div>
 
     <script>
         const CONFIG = {
-            API_URL: 'https://script.google.com/macros/s/AKfycbxYhU8cPpBx5-iNRcO1HXyxSimhP15W9qQ5BsYka1c6Lvusv4r0J5a5U4H-3cDFgSfP/exec',
-            DB_NAME: 'SMR_QR_DB_V7'
+            API_URL: 'https://script.google.com/macros/s/AKfycbynJM0ZkXT4alcDlMGSA-84thPWsZsBFOHh5r82BD6MW6j87xYL8qPYYAImHhP74Q/exec',
+            DB_NAME: 'SMR_QR_DB_V8'
         };
 
         class ScannerApp {
@@ -241,14 +241,14 @@
 
             async init() {
                 this.updateNetworkStatus(this.isOnline);
-                if (window.location.protocol === 'file:') { this.notify("️ Откройте через GitHub Pages!", "error"); return; }
+                if (window.location.protocol === 'file:') { this.notify("⚠️ Откройте через GitHub Pages!", "error"); return; }
                 try { await this.initDB(); await this.updatePendingCount(); this.log("✅ Запущено", "success"); } 
                 catch (e) { this.log(`❌ ${e.message}`, "error"); }
             }
 
             async initDB() {
                 return new Promise((resolve, reject) => {
-                    const req = indexedDB.open(CONFIG.DB_NAME, 7);
+                    const req = indexedDB.open(CONFIG.DB_NAME, 8);
                     req.onerror = (e) => reject(e.target.error);
                     req.onsuccess = (e) => { this.db = e.target.result; this.updateDBStatus().then(resolve); };
                     req.onupgradeneeded = (e) => {
@@ -285,7 +285,7 @@
                 .then(() => {
                     const v = document.querySelector('#reader video');
                     if (v && v.srcObject) this.videoTrack = v.srcObject.getVideoTracks()[0];
-                    const b = document.getElementById('btnFlash'); if (b) b.textContent = ' Вспышка';
+                    const b = document.getElementById('btnFlash'); if (b) b.textContent = '🔦 Вспышка';
                     this.isTorchOn = false;
                 }).catch(err => this.notify("❌ Нет доступа к камере", "error"));
             }
@@ -316,11 +316,11 @@
             async searchManual() {
                 const m = document.getElementById('manualCode');
                 const code = m ? m.value.trim() : '';
-                if (!code) return this.notify("️ Введите код", "error");
+                if (!code) return this.notify("⚠️ Введите код", "error");
                 await this.processScan(code);
             }
             async processScan(code) {
-                this.notify(` Поиск: ${code}`, "info");
+                this.notify(`🔍 Поиск: ${code}`, "info");
                 try {
                     const item = await this.findItem(code);
                     if (item) {
@@ -473,7 +473,7 @@
                 };
             }
 
-            // === ИСПРАВЛЕННАЯ ФУНКЦИЯ С ПОДРОБНОЙ ДИАГНОСТИКОЙ ===
+            // === ИСПРАВЛЕННАЯ ФУНКЦИЯ ОТПРАВКИ (CORS FIX) ===
             async syncNow() {
                 if (!this.isOnline) { this.notify("🔴 Нет сети", "error"); return; }
                 
@@ -487,30 +487,25 @@
                     const req = this.db.transaction(['pending'], 'readonly').objectStore('pending').getAll();
                     req.onsuccess = async () => {
                         const changes = (req.result || []).filter(c => !c.synced);
-                        
                         this.log(` Найдено записей в очереди: ${changes.length}`, "info");
                         
                         if (changes.length === 0) { 
                             this.notify("✅ Нечего отправлять", "success"); 
-                            btn.disabled = false; 
-                            btn.innerHTML = orig; 
-                            return; 
+                            btn.disabled = false; btn.innerHTML = orig; return; 
                         }
                         
-                        // Показываем первую запись для отладки
                         this.log(` Первая запись: ${JSON.stringify(changes[0])}`, "info");
-                        this.log(` URL: ${CONFIG.API_URL}?action=batchUpdate`, "info");
                         
                         try {
-                            const response = await fetch(CONFIG.API_URL + '?action=batchUpdate', {
+                            // МАГИЧЕСКОЕ ИСПРАВЛЕНИЕ: text/plain вместо application/json обходит CORS preflight
+                            const response = await fetch(CONFIG.API_URL, {
                                 method: 'POST', 
                                 mode: 'cors',
-                                headers: { 'Content-Type': 'application/json' },
-                                body: JSON.stringify({ updates: changes })
+                                headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+                                body: JSON.stringify({ action: 'batchUpdate', updates: changes })
                             });
                             
-                            this.log(` Статус ответа: ${response.status} ${response.statusText}`, "info");
-                            
+                            this.log(` Статус ответа: ${response.status}`, "info");
                             const result = await response.json();
                             this.log(`✅ Ответ сервера: ${JSON.stringify(result)}`, "success");
                             
@@ -525,7 +520,7 @@
                                     this.notify(`✅ УСПЕШНО! Отправлено: ${result.updated}`, "success");
                                 };
                             } else { 
-                                throw new Error(result.error || 'Сервер вернул success=false'); 
+                                throw new Error(result.error || 'Сервер вернул ошибку'); 
                             }
                         } catch (fetchErr) {
                             this.log(`❌ Ошибка fetch: ${fetchErr.message}`, "error");
@@ -536,8 +531,7 @@
                     this.log(`❌ Ошибка: ${err.message}`, "error"); 
                     this.notify(`❌ ${err.message}`, "error"); 
                 } finally {
-                    btn.disabled = false; 
-                    btn.innerHTML = orig;
+                    btn.disabled = false; btn.innerHTML = orig;
                 }
             }
 
@@ -559,7 +553,7 @@
             async downloadDB() {
                 const btn = document.getElementById('btnDownload');
                 if (btn) { btn.disabled = true; btn.innerHTML = '⏳ Загрузка...'; }
-                this.notify(' Загрузка...', 'info');
+                this.notify('⏳ Загрузка...', 'info');
                 try {
                     const res = await fetch(CONFIG.API_URL + '?action=getItems', { mode: 'cors' });
                     if (!res.ok) throw new Error(`HTTP ${res.status}`);
@@ -594,7 +588,7 @@
                     this.log(`Ошибка: ${err.message}`, "error"); 
                     this.notify(`❌ ${err.message}`, "error"); 
                 } finally { 
-                    if (btn) { btn.disabled = false; btn.innerHTML = ' Загрузить базу данных'; }
+                    if (btn) { btn.disabled = false; btn.innerHTML = '📥 Загрузить базу данных'; }
                 }
             }
         }
