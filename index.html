@@ -48,6 +48,59 @@
         .form-group input, .form-group textarea { width: 100%; padding: 12px; border: 2px solid var(--border); border-radius: 6px; font-size: 16px; background: white; }
         .form-group input:focus, .form-group textarea:focus { outline: none; border-color: var(--primary); }
 
+        /* НОВЫЕ СТИЛИ ДЛЯ БЫСТРЫХ ДЕЙСТВИЙ */
+        .quick-actions { display: flex; gap: 8px; margin-top: 8px; }
+        .quick-btn { 
+            flex: 1; 
+            padding: 16px; 
+            border: 2px solid var(--primary); 
+            border-radius: 6px; 
+            background: white; 
+            color: var(--primary);
+            font-size: 20px; 
+            font-weight: bold; 
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .quick-btn:active { 
+            background: var(--primary); 
+            color: white; 
+            transform: scale(0.95);
+        }
+        .quick-btn.minus { border-color: var(--danger); color: var(--danger); }
+        .quick-btn.minus:active { background: var(--danger); color: white; }
+
+        /* СТИЛИ ДЛЯ ГОЛОСОВОГО ВВОДА */
+        .voice-input-container { position: relative; }
+        .voice-btn {
+            position: absolute;
+            right: 8px;
+            bottom: 8px;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            border: 2px solid var(--primary);
+            background: white;
+            color: var(--primary);
+            font-size: 20px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s;
+        }
+        .voice-btn:active { background: var(--primary); color: white; }
+        .voice-btn.recording { 
+            background: var(--danger); 
+            border-color: var(--danger); 
+            color: white;
+            animation: pulse 1s infinite;
+        }
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+        }
+
         .item-info { display: none; background: linear-gradient(135deg, #f5f5f5 0%, #ffffff 100%); border: 2px solid var(--primary-light); }
         .item-info.show { display: block; }
         .info-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 16px; }
@@ -63,8 +116,29 @@
         .nav-icon { font-size: 22px; margin-bottom: 4px; }
         .nav-badge { position: absolute; top: 0px; right: 8px; background: var(--danger); color: white; font-size: 10px; padding: 2px 6px; border-radius: 10px; font-weight: bold; }
 
-        .notification { position: fixed; top: 80px; left: 50%; transform: translateX(-50%) translateY(-100px); padding: 14px 24px; border-radius: 8px; color: white; font-weight: 600; z-index: 1000; font-size: 14px; max-width: 90%; text-align: center; transition: transform 0.3s; box-shadow: 0 4px 12px rgba(0,0,0,0.2); }
-        .notification.show { transform: translateX(-50%) translateY(0); }
+        .notification { 
+            position: fixed; 
+            top: 80px; 
+            left: 50%; 
+            transform: translateX(-50%);
+            padding: 14px 24px; 
+            border-radius: 8px; 
+            color: white; 
+            font-weight: 600; 
+            z-index: 1000; 
+            font-size: 14px; 
+            max-width: 90%; 
+            text-align: center; 
+            box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s ease;
+        }
+        .notification.show { 
+            opacity: 1;
+            visibility: visible;
+            top: 90px;
+        }
         .notification.success { background: var(--success); }
         .notification.error { background: var(--danger); }
         .notification.info { background: #2196F3; }
@@ -94,11 +168,11 @@
 
     <div id="tab-scanner" class="tab-content active">
         <div class="card">
-            <div class="card-title">🔄 Синхронизация</div>
-            <button class="btn btn-primary" id="btnDownload" onclick="app.downloadDB()" style="margin-bottom: 8px;"> Загрузить базу данных</button>
+            <div class="card-title"> Синхронизация</div>
+            <button class="btn btn-primary" id="btnDownload" onclick="app.downloadDB()" style="margin-bottom: 8px;">📥 Загрузить базу данных</button>
             <div class="btn-row">
                 <button class="btn btn-success" id="btnSync" onclick="app.syncNow()">📤 Отправить (0)</button>
-                <button class="btn btn-outline" onclick="app.testConnection()">🔍 Проверка</button>
+                <button class="btn btn-outline" onclick="app.testConnection()"> Проверка</button>
             </div>
         </div>
 
@@ -116,7 +190,7 @@
             <div class="card-title">⌨️ Ручной ввод</div>
             <div class="input-group">
                 <input type="text" id="manualCode" placeholder="Введите бух. код..." inputmode="text">
-                <button class="btn btn-primary" style="width: auto; margin: 0;" onclick="app.searchManual()"></button>
+                <button class="btn btn-primary" style="width: 60px; margin: 0; padding: 12px;" onclick="app.searchManual()">🔍</button>
             </div>
         </div>
 
@@ -131,10 +205,23 @@
             </div>
 
             <div class="card-title" style="margin-top:16px;">✏️ Корректировка</div>
-            <div class="form-group"><label>📦 Фактическое количество:</label><input type="number" id="editFact" step="0.001" inputmode="decimal"></div>
-            <div class="form-group"><label>📍 Контейнер:</label><input type="text" id="editContainer" inputmode="text"></div>
+            <div class="form-group">
+                <label> Фактическое количество:</label>
+                <input type="number" id="editFact" step="0.001" inputmode="decimal">
+                <!-- БЫСТРЫЕ ДЕЙСТВИЯ -->
+                <div class="quick-actions">
+                    <button class="quick-btn minus" onclick="app.adjustFact(-1)">➖ -1</button>
+                    <button class="quick-btn" onclick="app.adjustFact(1)">➕ +1</button>
+                </div>
+            </div>
+            <div class="form-group"><label> Контейнер:</label><input type="text" id="editContainer" inputmode="text"></div>
             <div class="form-group"><label>📌 Полка/Место:</label><input type="text" id="editShelf" inputmode="text"></div>
-            <div class="form-group"><label> Примечание:</label><textarea id="editNote" rows="2"></textarea></div>
+            <div class="form-group voice-input-container">
+                <label>📝 Примечание:</label>
+                <textarea id="editNote" rows="2"></textarea>
+                <!-- КНОПКА ГОЛОСОВОГО ВВОДА -->
+                <button class="voice-btn" id="voiceBtn" onclick="app.toggleVoiceInput()" title="Голосовой ввод">🎤</button>
+            </div>
             <button class="btn btn-success" onclick="app.saveData()">💾 Сохранить и отправить</button>
         </div>
     </div>
@@ -150,13 +237,13 @@
         <div class="card">
             <div class="card-title">⏳ Очередь отправки</div>
             <div id="pendingList"></div>
-            <button class="btn btn-success mt-2" onclick="app.syncNow()">📤 Отправить все на сервер</button>
+            <button class="btn btn-success" onclick="app.syncNow()">📤 Отправить все на сервер</button>
         </div>
     </div>
 
     <div class="bottom-nav">
         <div class="nav-item active" onclick="app.switchTab('scanner', this)"><span class="nav-icon">📷</span><span>Сканер</span></div>
-        <div class="nav-item" onclick="app.switchTab('history', this)"><span class="nav-icon">📋</span><span>История</span></div>
+        <div class="nav-item" onclick="app.switchTab('history', this)"><span class="nav-icon"></span><span>История</span></div>
         <div class="nav-item" onclick="app.switchTab('pending', this)"><span class="nav-icon">📤</span><span>Очередь</span><span class="nav-badge" id="navBadge" style="display:none;">0</span></div>
     </div>
 
@@ -164,7 +251,7 @@
 
     <script>
         const CONFIG = {
-            API_URL: 'https://script.google.com/macros/s/AKfycbwrFHnfbFzhm2zD_z9nvO0I1vTUhs4hIsYz40P1lWP9B_3HsiAgxJBCEjedHi6Rn10e/exec',
+            API_URL: 'https://script.google.com/macros/s/AKfycbxYhU8cPpBx5-iNRcO1HXyxSimhP15W9qQ5BsYka1c6Lvusv4r0J5a5U4H-3cDFgSfP/exec',
             DB_NAME: 'SMR_QR_DB_FINAL'
         };
 
@@ -176,6 +263,16 @@
                 this.isOnline = navigator.onLine;
                 this.isTorchOn = false;
                 this.videoTrack = null;
+                this.notificationTimeout = null;
+                this.audioContext = null;
+                this.voiceRecognition = null;
+                this.isRecording = false;
+                
+                // Инициализация Web Audio API
+                this.initAudio();
+                
+                // Инициализация голосового ввода
+                this.initVoiceRecognition();
                 
                 window.addEventListener('online', () => this.updateNetworkStatus(true));
                 window.addEventListener('offline', () => this.updateNetworkStatus(false));
@@ -186,6 +283,104 @@
                         if (e.key === 'Enter') { e.preventDefault(); this.searchManual(); }
                     });
                 }
+            }
+
+            // ИНИЦИАЛИЗАЦИЯ АУДИО
+            initAudio() {
+                try {
+                    this.audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                } catch (e) {
+                    console.log('Web Audio API не поддерживается');
+                }
+            }
+
+            // ВОСПРОИЗВЕДЕНИЕ ЗВУКА НИЗКОЙ ЧАСТОТЫ
+            playBeep(frequency = 300, duration = 200, type = 'sine') {
+                if (!this.audioContext) return;
+                
+                try {
+                    const oscillator = this.audioContext.createOscillator();
+                    const gainNode = this.audioContext.createGain();
+                    
+                    oscillator.connect(gainNode);
+                    gainNode.connect(this.audioContext.destination);
+                    
+                    oscillator.frequency.value = frequency;
+                    oscillator.type = type;
+                    
+                    gainNode.gain.setValueAtTime(0.3, this.audioContext.currentTime);
+                    gainNode.gain.exponentialRampToValueAtTime(0.01, this.audioContext.currentTime + duration / 1000);
+                    
+                    oscillator.start(this.audioContext.currentTime);
+                    oscillator.stop(this.audioContext.currentTime + duration / 1000);
+                } catch (e) {
+                    console.log('Ошибка воспроизведения звука:', e);
+                }
+            }
+
+            // ИНИЦИАЛИЗАЦИЯ ГОЛОСОВОГО ВВОДА
+            initVoiceRecognition() {
+                const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+                if (SpeechRecognition) {
+                    this.voiceRecognition = new SpeechRecognition();
+                    this.voiceRecognition.lang = 'ru-RU';
+                    this.voiceRecognition.continuous = false;
+                    this.voiceRecognition.interimResults = false;
+                    
+                    this.voiceRecognition.onresult = (event) => {
+                        const transcript = event.results[0][0].transcript;
+                        const noteField = document.getElementById('editNote');
+                        if (noteField) {
+                            noteField.value = noteField.value ? noteField.value + ' ' + transcript : transcript;
+                        }
+                        this.notify('✅ Распознано: ' + transcript, 'success');
+                        this.stopVoiceRecording();
+                    };
+                    
+                    this.voiceRecognition.onerror = (event) => {
+                        console.log('Ошибка распознавания:', event.error);
+                        this.notify('❌ Ошибка распознавания', 'error');
+                        this.stopVoiceRecording();
+                    };
+                    
+                    this.voiceRecognition.onend = () => {
+                        this.stopVoiceRecording();
+                    };
+                } else {
+                    console.log('Голосовой ввод не поддерживается');
+                }
+            }
+
+            // ПЕРЕКЛЮЧЕНИЕ ГОЛОСОВОГО ВВОДА
+            toggleVoiceInput() {
+                if (!this.voiceRecognition) {
+                    this.notify('⚠️ Голосовой ввод не поддерживается браузером', 'error');
+                    return;
+                }
+                
+                if (this.isRecording) {
+                    this.voiceRecognition.stop();
+                } else {
+                    try {
+                        this.voiceRecognition.start();
+                        this.startVoiceRecording();
+                    } catch (e) {
+                        this.notify('❌ Ошибка запуска распознавания', 'error');
+                    }
+                }
+            }
+
+            startVoiceRecording() {
+                this.isRecording = true;
+                const btn = document.getElementById('voiceBtn');
+                if (btn) btn.classList.add('recording');
+                this.notify('🎤 Говорите...', 'info');
+            }
+
+            stopVoiceRecording() {
+                this.isRecording = false;
+                const btn = document.getElementById('voiceBtn');
+                if (btn) btn.classList.remove('recording');
             }
 
             log(msg, type = 'info') {
@@ -200,9 +395,21 @@
             notify(msg, type = 'info') {
                 const el = document.getElementById('notification');
                 if (!el) return;
+                
+                if (this.notificationTimeout) {
+                    clearTimeout(this.notificationTimeout);
+                }
+                
                 el.textContent = msg;
-                el.className = `notification show ${type}`;
-                setTimeout(() => el.classList.remove('show'), 4000);
+                el.className = `notification ${type}`;
+                
+                void el.offsetWidth;
+                
+                el.classList.add('show');
+                
+                this.notificationTimeout = setTimeout(() => {
+                    el.classList.remove('show');
+                }, 3000);
             }
 
             switchTab(tabName, navElement) {
@@ -270,7 +477,7 @@
                 this.isOnline = online;
                 const el = document.getElementById('connStatus');
                 if (el) {
-                    el.textContent = online ? '' : '🔴';
+                    el.textContent = online ? '🟢' : '🔴';
                     el.style.color = online ? 'var(--success)' : 'var(--danger)';
                 }
             }
@@ -308,14 +515,14 @@
             }
 
             async toggleFlash() {
-                if (!this.videoTrack) { this.notify("️ Запустите камеру", "error"); return; }
+                if (!this.videoTrack) { this.notify("⚠️ Запустите камеру", "error"); return; }
                 try {
                     const capabilities = this.videoTrack.getCapabilities();
                     if (capabilities.torch) {
                         this.isTorchOn = !this.isTorchOn;
                         await this.videoTrack.applyConstraints({ advanced: [{ torch: this.isTorchOn }] });
                         const btn = document.getElementById('btnFlash');
-                        if (btn) btn.textContent = this.isTorchOn ? '💡 Выкл' : '🔦 Вспышка';
+                        if (btn) btn.textContent = this.isTorchOn ? ' Выкл' : '🔦 Вспышка';
                     } else {
                         this.notify("⚠️ Вспышка не поддерживается", "error");
                     }
@@ -324,6 +531,7 @@
 
             async onScanSuccess(code) {
                 if (navigator.vibrate) navigator.vibrate(100);
+                this.playBeep(300, 200); // ЗВУКОВОЙ СИГНАЛ НИЗКОЙ ЧАСТОТЫ
                 this.stopScanner();
                 const manualInput = document.getElementById('manualCode');
                 if (manualInput) manualInput.value = code;
@@ -345,6 +553,7 @@
                         this.currentItem = item;
                         this.displayItem(item);
                         await this.addToHistory(code, item.name);
+                        this.playBeep(400, 150); // УСПЕШНЫЙ ЗВУК
                         this.notify("✅ Найдено: " + (item.name ? item.name.substring(0, 30) : ''), "success");
                         setTimeout(() => {
                             const editFact = document.getElementById('editFact');
@@ -353,12 +562,27 @@
                             if (itemInfo) itemInfo.scrollIntoView({ behavior: 'smooth', block: 'center' });
                         }, 300);
                     } else {
-                        this.notify(`⚠️ Не найдено: ${code}`, "error");
+                        this.playBeep(200, 300, 'square'); // ЗВУК ОШИБКИ
+                        this.notify(`️ Не найдено: ${code}`, "error");
                         const itemInfo = document.getElementById('itemInfo');
                         if (itemInfo) itemInfo.classList.remove('show');
                         await this.addToHistory(code, "Не найдено");
                     }
                 } catch (e) { this.log(`Ошибка: ${e.message}`, "error"); }
+            }
+
+            // БЫСТРОЕ ИЗМЕНЕНИЕ КОЛИЧЕСТВА
+            adjustFact(delta) {
+                const editFact = document.getElementById('editFact');
+                if (!editFact) return;
+                
+                let currentValue = parseFloat(editFact.value) || 0;
+                currentValue += delta;
+                
+                if (currentValue < 0) currentValue = 0;
+                
+                editFact.value = currentValue.toFixed(3);
+                this.playBeep(350, 100); // Короткий звук при нажатии
             }
 
             findItem(code) {
@@ -379,7 +603,6 @@
             }
 
             displayItem(item) {
-                // ИСПРАВЛЕНО: прямое соответствие полей
                 document.getElementById('infoBukh').textContent = item.bukh || '-';
                 document.getElementById('infoName').textContent = item.name || '-';
                 document.getElementById('infoUnit').textContent = item.unit || 'шт';
@@ -388,7 +611,6 @@
                 document.getElementById('infoFact').textContent = 
                     (item.fact !== null && item.fact !== undefined) ? Number(item.fact).toFixed(3) : '0.000';
                 
-                // Поля для редактирования - ПРЯМОЕ СООТВЕТСТВИЕ
                 document.getElementById('editFact').value = (item.fact !== null && item.fact !== undefined) ? item.fact : '';
                 document.getElementById('editContainer').value = item.container || '';
                 document.getElementById('editShelf').value = item.shelf || '';
@@ -396,7 +618,7 @@
                 
                 document.getElementById('itemInfo').classList.add('show');
                 
-                this.log(`Товар: ${item.bukh} | Факт: ${item.fact} | Контейнер: "${item.container}" | Полка: "${item.shelf}" | Прим: "${item.note}"`, "success");
+                this.log(`Товар: ${item.bukh} | Факт: ${item.fact} | Контейнер: "${item.container}" | Полка: "${item.shelf}"`, "success");
             }
 
             async saveData() {
@@ -442,6 +664,7 @@
                     this.displayItem(this.currentItem);
                     
                     await this.updatePendingCount();
+                    this.playBeep(500, 200); // ЗВУК УСПЕШНОГО СОХРАНЕНИЯ
                     this.notify("✅ Сохранено локально! Отправка...", "success");
                     
                     if (editFact) editFact.value = '';
@@ -478,7 +701,7 @@
                     const records = (req.result || []).sort((a, b) => b.timestamp - a.timestamp).slice(0, 50);
                     const container = document.getElementById('historyList');
                     if (!container) return;
-                    if (records.length === 0) { container.innerHTML = '<div class="text-center" style="padding:20px; color:#999;">Пусто</div>'; return; }
+                    if (records.length === 0) { container.innerHTML = '<div style="padding:20px; text-align:center; color:#999;">Пусто</div>'; return; }
                     container.innerHTML = records.map(item => {
                         const d = new Date(item.timestamp);
                         return `<div class="list-item"><div><div class="list-main">${item.code}</div><div class="list-sub">${item.name} • ${d.toLocaleTimeString()}</div></div></div>`;
@@ -499,7 +722,7 @@
                     const changes = (req.result || []).filter(c => !c.synced);
                     const container = document.getElementById('pendingList');
                     if (!container) return;
-                    if (changes.length === 0) { container.innerHTML = '<div class="text-center" style="padding:20px; color:#999;">Пусто</div>'; return; }
+                    if (changes.length === 0) { container.innerHTML = '<div style="padding:20px; text-align:center; color:#999;">Пусто</div>'; return; }
                     container.innerHTML = changes.map(c => {
                         const d = new Date(c.timestamp);
                         return `<div class="list-item"><div><div class="list-main">${c.code} | Факт: ${c.fact}</div><div class="list-sub">${c.container || '-'} • ${d.toLocaleString()}</div></div><button class="btn btn-danger list-action" onclick="app.deletePending(${c.id})">✕</button></div>`;
@@ -521,12 +744,12 @@
                     const badge = document.getElementById('navBadge');
                     const btnSync = document.getElementById('btnSync');
                     if (badge) { badge.textContent = count; badge.style.display = count > 0 ? 'block' : 'none'; }
-                    if (btnSync) btnSync.innerHTML = ` Отправить (${count})`;
+                    if (btnSync) btnSync.innerHTML = `📤 Отправить (${count})`;
                 };
             }
 
             async syncNow() {
-                if (!this.isOnline) { this.notify(" Нет сети", "error"); return; }
+                if (!this.isOnline) { this.notify("🔴 Нет сети", "error"); return; }
                 
                 const btn = document.getElementById('btnSync');
                 const originalText = btn.innerHTML;
@@ -564,7 +787,8 @@
                             tx.oncomplete = () => {
                                 this.updatePendingCount();
                                 this.renderPending();
-                                this.notify(`✅ УСПЕШНО! Отправлено и сохранено на сервере: ${result.updated} поз.`, "success");
+                                this.playBeep(600, 300); // ЗВУК УСПЕШНОЙ ОТПРАВКИ
+                                this.notify(`✅ УСПЕШНО! Отправлено: ${result.updated} поз.`, "success");
                             };
                         } else { 
                             throw new Error(result.error || 'Сервер не подтвердил обновление'); 
@@ -580,7 +804,7 @@
             }
 
             async testConnection() {
-                this.notify("🔍 Проверка...", "info");
+                this.notify(" Проверка...", "info");
                 try {
                     const res = await fetch(CONFIG.API_URL + '?action=ping', { method: 'GET', mode: 'cors' });
                     this.notify(res.ok ? "✅ Связь с сервером есть" : "❌ Ошибка сервера", res.ok ? "success" : "error");
@@ -602,7 +826,6 @@
                         const store = tx.objectStore('items');
                         store.clear();
                         
-                        // ИСПРАВЛЕНО: нормализация данных при загрузке
                         data.items.forEach(item => {
                             if(item.bukh) {
                                 const normalizedItem = {
@@ -623,6 +846,7 @@
                         
                         tx.oncomplete = () => {
                             this.updateDBStatus();
+                            this.playBeep(500, 250);
                             this.notify(`✅ Успешно загружено ${data.items.length} позиций`, 'success');
                         };
                     } else {
