@@ -77,15 +77,13 @@
         .debug-panel { display: none; margin-top: 12px; padding: 10px; background: #1e1e1e; color: #00ff00; font-family: monospace; font-size: 11px; border-radius: 6px; max-height: 150px; overflow-y: auto; }
         .debug-panel.show { display: block; }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-        .text-center { text-align: center; }
-        .mt-2 { margin-top: 12px; }
     </style>
 </head>
 <body>
 
     <div class="header">
         <div class="header-top">
-            <h1>📱 QR Сканер СМР</h1>
+            <h1> QR Сканер СМР</h1>
             <div class="status-bar">
                 <div class="status-item" onclick="toggleDebug()"><span class="status-value" id="connStatus">🔍</span><span>Сеть</span></div>
                 <div class="status-item" onclick="toggleDebug()"><span class="status-value" id="dbStatus">❌</span><span>База</span></div>
@@ -97,7 +95,7 @@
     <div id="tab-scanner" class="tab-content active">
         <div class="card">
             <div class="card-title">🔄 Синхронизация</div>
-            <button class="btn btn-primary" id="btnDownload" onclick="app.downloadDB()" style="margin-bottom: 8px;">📥 Загрузить базу данных</button>
+            <button class="btn btn-primary" id="btnDownload" onclick="app.downloadDB()" style="margin-bottom: 8px;"> Загрузить базу данных</button>
             <div class="btn-row">
                 <button class="btn btn-success" id="btnSync" onclick="app.syncNow()">📤 Отправить (0)</button>
                 <button class="btn btn-outline" onclick="app.testConnection()">🔍 Проверка</button>
@@ -118,7 +116,7 @@
             <div class="card-title">⌨️ Ручной ввод</div>
             <div class="input-group">
                 <input type="text" id="manualCode" placeholder="Введите бух. код..." inputmode="text">
-                <button class="btn btn-primary" style="width: auto; margin: 0;" onclick="app.searchManual()">🔍</button>
+                <button class="btn btn-primary" style="width: auto; margin: 0;" onclick="app.searchManual()"></button>
             </div>
         </div>
 
@@ -129,14 +127,14 @@
                 <div class="info-row"><div class="info-label">ЕД. ИЗМ.</div><div class="info-value" id="infoUnit">-</div></div>
                 <div class="info-row full"><div class="info-label">НАИМЕНОВАНИЕ</div><div class="info-value" id="infoName">-</div></div>
                 <div class="info-row"><div class="info-label">ОСТАТОК (1С)</div><div class="info-value" id="infoBalance">-</div></div>
-                <div class="info-row"><div class="info-label">ФАКТ (Сканер)</div><div class="info-value highlight" id="infoFact">-</div></div>
+                <div class="info-row"><div class="info-label">ФАКТ (СКАНЕР)</div><div class="info-value highlight" id="infoFact">-</div></div>
             </div>
 
             <div class="card-title" style="margin-top:16px;">✏️ Корректировка</div>
             <div class="form-group"><label>📦 Фактическое количество:</label><input type="number" id="editFact" step="0.001" inputmode="decimal"></div>
             <div class="form-group"><label>📍 Контейнер:</label><input type="text" id="editContainer" inputmode="text"></div>
             <div class="form-group"><label>📌 Полка/Место:</label><input type="text" id="editShelf" inputmode="text"></div>
-            <div class="form-group"><label>📝 Примечание:</label><textarea id="editNote" rows="2"></textarea></div>
+            <div class="form-group"><label> Примечание:</label><textarea id="editNote" rows="2"></textarea></div>
             <button class="btn btn-success" onclick="app.saveData()">💾 Сохранить и отправить</button>
         </div>
     </div>
@@ -238,7 +236,7 @@
 
             async initDB() {
                 return new Promise((resolve, reject) => {
-                    const request = indexedDB.open(CONFIG.DB_NAME, 4);
+                    const request = indexedDB.open(CONFIG.DB_NAME, 5);
                     request.onerror = (e) => reject(e.target.error);
                     request.onsuccess = (e) => {
                         this.db = e.target.result;
@@ -272,7 +270,7 @@
                 this.isOnline = online;
                 const el = document.getElementById('connStatus');
                 if (el) {
-                    el.textContent = online ? '🟢' : '🔴';
+                    el.textContent = online ? '' : '🔴';
                     el.style.color = online ? 'var(--success)' : 'var(--danger)';
                 }
             }
@@ -310,7 +308,7 @@
             }
 
             async toggleFlash() {
-                if (!this.videoTrack) { this.notify("⚠️ Запустите камеру", "error"); return; }
+                if (!this.videoTrack) { this.notify("️ Запустите камеру", "error"); return; }
                 try {
                     const capabilities = this.videoTrack.getCapabilities();
                     if (capabilities.torch) {
@@ -345,7 +343,7 @@
                     const item = await this.findItem(code);
                     if (item) {
                         this.currentItem = item;
-                        this.displayItem(item); // <-- ВОТ ЗДЕСЬ ВЫЗЫВАЕТСЯ ФУНКЦИЯ ОТОБРАЖЕНИЯ
+                        this.displayItem(item);
                         await this.addToHistory(code, item.name);
                         this.notify("✅ Найдено: " + (item.name ? item.name.substring(0, 30) : ''), "success");
                         setTimeout(() => {
@@ -380,24 +378,25 @@
                 });
             }
 
-            // === ВОТ ЭТА ФУНКЦИЯ ОТВЕЧАЕТ ЗА ПРАВИЛЬНОЕ ОТОБРАЖЕНИЕ ДАННЫХ ===
             displayItem(item) {
+                // ИСПРАВЛЕНО: прямое соответствие полей
                 document.getElementById('infoBukh').textContent = item.bukh || '-';
                 document.getElementById('infoName').textContent = item.name || '-';
                 document.getElementById('infoUnit').textContent = item.unit || 'шт';
-                
                 document.getElementById('infoBalance').textContent = 
                     (item.balance !== null && item.balance !== undefined) ? Number(item.balance).toFixed(3) : '0.000';
                 document.getElementById('infoFact').textContent = 
                     (item.fact !== null && item.fact !== undefined) ? Number(item.fact).toFixed(3) : '0.000';
                 
+                // Поля для редактирования - ПРЯМОЕ СООТВЕТСТВИЕ
                 document.getElementById('editFact').value = (item.fact !== null && item.fact !== undefined) ? item.fact : '';
                 document.getElementById('editContainer').value = item.container || '';
                 document.getElementById('editShelf').value = item.shelf || '';
                 document.getElementById('editNote').value = item.note || '';
                 
                 document.getElementById('itemInfo').classList.add('show');
-                this.log(`Отображен: ${item.bukh} | Факт: ${item.fact} | Контейнер: ${item.container}`, "success");
+                
+                this.log(`Товар: ${item.bukh} | Факт: ${item.fact} | Контейнер: "${item.container}" | Полка: "${item.shelf}" | Прим: "${item.note}"`, "success");
             }
 
             async saveData() {
@@ -431,7 +430,13 @@
                     this.db.transaction(['pending'], 'readwrite').objectStore('pending').add(change);
                     
                     const store = this.db.transaction(['items'], 'readwrite').objectStore('items');
-                    const updatedItem = { ...this.currentItem, fact: fact, container: container, shelf: shelf, note: note };
+                    const updatedItem = { 
+                        ...this.currentItem, 
+                        fact: fact, 
+                        container: container, 
+                        shelf: shelf, 
+                        note: note 
+                    };
                     store.put(updatedItem);
                     this.currentItem = updatedItem;
                     this.displayItem(this.currentItem);
@@ -516,13 +521,12 @@
                     const badge = document.getElementById('navBadge');
                     const btnSync = document.getElementById('btnSync');
                     if (badge) { badge.textContent = count; badge.style.display = count > 0 ? 'block' : 'none'; }
-                    if (btnSync) btnSync.innerHTML = `📤 Отправить (${count})`;
+                    if (btnSync) btnSync.innerHTML = ` Отправить (${count})`;
                 };
             }
 
-            // === ПРОВЕРКА УСПЕШНОЙ ОТПРАВКИ ===
             async syncNow() {
-                if (!this.isOnline) { this.notify("🔴 Нет сети", "error"); return; }
+                if (!this.isOnline) { this.notify(" Нет сети", "error"); return; }
                 
                 const btn = document.getElementById('btnSync');
                 const originalText = btn.innerHTML;
@@ -552,7 +556,6 @@
                         const result = await response.json();
                         this.log(`Ответ сервера: ${JSON.stringify(result)}`, "info");
                         
-                        // ПРОВЕРКА: успех И количество обновленных записей > 0
                         if (result.success && result.updated > 0) {
                             const tx = this.db.transaction(['pending'], 'readwrite');
                             const store = tx.objectStore('pending');
@@ -585,54 +588,54 @@
             }
 
             async downloadDB() {
-    const btn = document.getElementById('btnDownload');
-    if (btn) { btn.disabled = true; btn.innerHTML = ' Загрузка...'; }
-    this.notify('⏳ Загрузка базы...', 'info');
-    
-    try {
-        const res = await fetch(CONFIG.API_URL + '?action=getItems', { mode: 'cors' });
-        if (!res.ok) throw new Error(`HTTP ${res.status}`);
-        const data = await res.json();
-        
-        if (data.success && data.items) {
-            const tx = this.db.transaction(['items'], 'readwrite');
-            const store = tx.objectStore('items');
-            store.clear();
-            
-            // ИСПРАВЛЕНИЕ: проверяем и нормализуем структуру данных
-            data.items.forEach(item => {
-                if(item.bukh) {
-                    // Убеждаемся, что все поля на своих местах
-                    const normalizedItem = {
-                        bukh: String(item.bukh || '').trim(),
-                        name: String(item.name || ''),
-                        unit: String(item.unit || 'шт'),
-                        balance: item.balance || 0,
-                        fact: item.fact || 0,
-                        difference: item.difference || 0,
-                        container: String(item.container || ''),
-                        shelf: String(item.shelf || ''),
-                        note: String(item.note || ''),
-                        barcode: String(item.barcode || '').trim()
-                    };
-                    store.put(normalizedItem);
+                const btn = document.getElementById('btnDownload');
+                if (btn) { btn.disabled = true; btn.innerHTML = '⏳ Загрузка...'; }
+                this.notify('⏳ Загрузка базы...', 'info');
+                
+                try {
+                    const res = await fetch(CONFIG.API_URL + '?action=getItems', { mode: 'cors' });
+                    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+                    const data = await res.json();
+                    
+                    if (data.success && data.items) {
+                        const tx = this.db.transaction(['items'], 'readwrite');
+                        const store = tx.objectStore('items');
+                        store.clear();
+                        
+                        // ИСПРАВЛЕНО: нормализация данных при загрузке
+                        data.items.forEach(item => {
+                            if(item.bukh) {
+                                const normalizedItem = {
+                                    bukh: String(item.bukh || '').trim(),
+                                    name: String(item.name || ''),
+                                    unit: String(item.unit || 'шт'),
+                                    balance: item.balance || 0,
+                                    fact: item.fact || 0,
+                                    difference: item.difference || 0,
+                                    container: String(item.container || ''),
+                                    shelf: String(item.shelf || ''),
+                                    note: String(item.note || ''),
+                                    barcode: String(item.barcode || '').trim()
+                                };
+                                store.put(normalizedItem);
+                            }
+                        });
+                        
+                        tx.oncomplete = () => {
+                            this.updateDBStatus();
+                            this.notify(`✅ Успешно загружено ${data.items.length} позиций`, 'success');
+                        };
+                    } else {
+                        throw new Error(data.error || 'Ошибка данных');
+                    }
+                } catch (err) { 
+                    this.log(`Ошибка загрузки: ${err.message}`, "error");
+                    this.notify(`❌ ${err.message}`, "error"); 
+                } finally { 
+                    if (btn) { btn.disabled = false; btn.innerHTML = '📥 Загрузить базу данных'; }
                 }
-            });
-            
-            tx.oncomplete = () => {
-                this.updateDBStatus();
-                this.notify(`✅ Успешно загружено ${data.items.length} позиций`, 'success');
-            };
-        } else {
-            throw new Error(data.error || 'Ошибка данных');
+            }
         }
-    } catch (err) { 
-        this.log(`Ошибка загрузки: ${err.message}`, "error");
-        this.notify(`❌ ${err.message}`, "error"); 
-    } finally { 
-        if (btn) { btn.disabled = false; btn.innerHTML = '📥 Загрузить базу данных'; }
-    }
-}
 
         const app = new ScannerApp();
         document.addEventListener('DOMContentLoaded', () => app.init());
