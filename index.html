@@ -585,36 +585,54 @@
             }
 
             async downloadDB() {
-                const btn = document.getElementById('btnDownload');
-                if (btn) { btn.disabled = true; btn.innerHTML = '⏳ Загрузка...'; }
-                this.notify('⏳ Загрузка базы...', 'info');
-                
-                try {
-                    const res = await fetch(CONFIG.API_URL + '?action=getItems', { mode: 'cors' });
-                    if (!res.ok) throw new Error(`HTTP ${res.status}`);
-                    const data = await res.json();
-                    
-                    if (data.success && data.items) {
-                        const tx = this.db.transaction(['items'], 'readwrite');
-                        const store = tx.objectStore('items');
-                        store.clear();
-                        data.items.forEach(item => { if(item.bukh) store.put(item); });
-                        
-                        tx.oncomplete = () => {
-                            this.updateDBStatus();
-                            this.notify(`✅ Успешно загружено ${data.items.length} позиций`, 'success');
-                        };
-                    } else {
-                        throw new Error(data.error || 'Ошибка данных');
-                    }
-                } catch (err) { 
-                    this.log(`Ошибка загрузки: ${err.message}`, "error");
-                    this.notify(`❌ ${err.message}`, "error"); 
-                } finally { 
-                    if (btn) { btn.disabled = false; btn.innerHTML = '📥 Загрузить базу данных'; }
+    const btn = document.getElementById('btnDownload');
+    if (btn) { btn.disabled = true; btn.innerHTML = ' Загрузка...'; }
+    this.notify('⏳ Загрузка базы...', 'info');
+    
+    try {
+        const res = await fetch(CONFIG.API_URL + '?action=getItems', { mode: 'cors' });
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        const data = await res.json();
+        
+        if (data.success && data.items) {
+            const tx = this.db.transaction(['items'], 'readwrite');
+            const store = tx.objectStore('items');
+            store.clear();
+            
+            // ИСПРАВЛЕНИЕ: проверяем и нормализуем структуру данных
+            data.items.forEach(item => {
+                if(item.bukh) {
+                    // Убеждаемся, что все поля на своих местах
+                    const normalizedItem = {
+                        bukh: String(item.bukh || '').trim(),
+                        name: String(item.name || ''),
+                        unit: String(item.unit || 'шт'),
+                        balance: item.balance || 0,
+                        fact: item.fact || 0,
+                        difference: item.difference || 0,
+                        container: String(item.container || ''),
+                        shelf: String(item.shelf || ''),
+                        note: String(item.note || ''),
+                        barcode: String(item.barcode || '').trim()
+                    };
+                    store.put(normalizedItem);
                 }
-            }
+            });
+            
+            tx.oncomplete = () => {
+                this.updateDBStatus();
+                this.notify(`✅ Успешно загружено ${data.items.length} позиций`, 'success');
+            };
+        } else {
+            throw new Error(data.error || 'Ошибка данных');
         }
+    } catch (err) { 
+        this.log(`Ошибка загрузки: ${err.message}`, "error");
+        this.notify(`❌ ${err.message}`, "error"); 
+    } finally { 
+        if (btn) { btn.disabled = false; btn.innerHTML = '📥 Загрузить базу данных'; }
+    }
+}
 
         const app = new ScannerApp();
         document.addEventListener('DOMContentLoaded', () => app.init());
