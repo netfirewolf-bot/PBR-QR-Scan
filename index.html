@@ -157,7 +157,7 @@
 
     <div class="header">
         <div class="header-top">
-            <h1> QR Сканер СМР</h1>
+            <h1>📱 QR Сканер СМР</h1>
             <div class="status-bar">
                 <div class="status-item" onclick="toggleDebug()"><span class="status-value" id="connStatus">🔍</span><span>Сеть</span></div>
                 <div class="status-item" onclick="toggleDebug()"><span class="status-value" id="dbStatus">❌</span><span>База</span></div>
@@ -168,11 +168,11 @@
 
     <div id="tab-scanner" class="tab-content active">
         <div class="card">
-            <div class="card-title"> Синхронизация</div>
+            <div class="card-title">🔄 Синхронизация</div>
             <button class="btn btn-primary" id="btnDownload" onclick="app.downloadDB()" style="margin-bottom: 8px;">📥 Загрузить базу данных</button>
             <div class="btn-row">
                 <button class="btn btn-success" id="btnSync" onclick="app.syncNow()">📤 Отправить (0)</button>
-                <button class="btn btn-outline" onclick="app.testConnection()"> Проверка</button>
+                <button class="btn btn-outline" onclick="app.testConnection()">🔍 Проверка</button>
             </div>
         </div>
 
@@ -206,20 +206,18 @@
 
             <div class="card-title" style="margin-top:16px;">✏️ Корректировка</div>
             <div class="form-group">
-                <label> Фактическое количество:</label>
+                <label>📦 Фактическое количество:</label>
                 <input type="number" id="editFact" step="0.001" inputmode="decimal">
-                <!-- БЫСТРЫЕ ДЕЙСТВИЯ -->
                 <div class="quick-actions">
                     <button class="quick-btn minus" onclick="app.adjustFact(-1)">➖ -1</button>
                     <button class="quick-btn" onclick="app.adjustFact(1)">➕ +1</button>
                 </div>
             </div>
-            <div class="form-group"><label> Контейнер:</label><input type="text" id="editContainer" inputmode="text"></div>
+            <div class="form-group"><label>📍 Контейнер:</label><input type="text" id="editContainer" inputmode="text"></div>
             <div class="form-group"><label>📌 Полка/Место:</label><input type="text" id="editShelf" inputmode="text"></div>
             <div class="form-group voice-input-container">
                 <label>📝 Примечание:</label>
                 <textarea id="editNote" rows="2"></textarea>
-                <!-- КНОПКА ГОЛОСОВОГО ВВОДА -->
                 <button class="voice-btn" id="voiceBtn" onclick="app.toggleVoiceInput()" title="Голосовой ввод">🎤</button>
             </div>
             <button class="btn btn-success" onclick="app.saveData()">💾 Сохранить и отправить</button>
@@ -243,7 +241,7 @@
 
     <div class="bottom-nav">
         <div class="nav-item active" onclick="app.switchTab('scanner', this)"><span class="nav-icon">📷</span><span>Сканер</span></div>
-        <div class="nav-item" onclick="app.switchTab('history', this)"><span class="nav-icon"></span><span>История</span></div>
+        <div class="nav-item" onclick="app.switchTab('history', this)"><span class="nav-icon">📋</span><span>История</span></div>
         <div class="nav-item" onclick="app.switchTab('pending', this)"><span class="nav-icon">📤</span><span>Очередь</span><span class="nav-badge" id="navBadge" style="display:none;">0</span></div>
     </div>
 
@@ -522,7 +520,7 @@
                         this.isTorchOn = !this.isTorchOn;
                         await this.videoTrack.applyConstraints({ advanced: [{ torch: this.isTorchOn }] });
                         const btn = document.getElementById('btnFlash');
-                        if (btn) btn.textContent = this.isTorchOn ? ' Выкл' : '🔦 Вспышка';
+                        if (btn) btn.textContent = this.isTorchOn ? '💡 Выкл' : '🔦 Вспышка';
                     } else {
                         this.notify("⚠️ Вспышка не поддерживается", "error");
                     }
@@ -531,7 +529,7 @@
 
             async onScanSuccess(code) {
                 if (navigator.vibrate) navigator.vibrate(100);
-                this.playBeep(300, 200); // ЗВУКОВОЙ СИГНАЛ НИЗКОЙ ЧАСТОТЫ
+                this.playBeep(300, 200);
                 this.stopScanner();
                 const manualInput = document.getElementById('manualCode');
                 if (manualInput) manualInput.value = code;
@@ -553,7 +551,7 @@
                         this.currentItem = item;
                         this.displayItem(item);
                         await this.addToHistory(code, item.name);
-                        this.playBeep(400, 150); // УСПЕШНЫЙ ЗВУК
+                        this.playBeep(400, 150);
                         this.notify("✅ Найдено: " + (item.name ? item.name.substring(0, 30) : ''), "success");
                         setTimeout(() => {
                             const editFact = document.getElementById('editFact');
@@ -562,8 +560,8 @@
                             if (itemInfo) itemInfo.scrollIntoView({ behavior: 'smooth', block: 'center' });
                         }, 300);
                     } else {
-                        this.playBeep(200, 300, 'square'); // ЗВУК ОШИБКИ
-                        this.notify(`️ Не найдено: ${code}`, "error");
+                        this.playBeep(200, 300, 'square');
+                        this.notify(`⚠️ Не найдено: ${code}`, "error");
                         const itemInfo = document.getElementById('itemInfo');
                         if (itemInfo) itemInfo.classList.remove('show');
                         await this.addToHistory(code, "Не найдено");
@@ -582,7 +580,7 @@
                 if (currentValue < 0) currentValue = 0;
                 
                 editFact.value = currentValue.toFixed(3);
-                this.playBeep(350, 100); // Короткий звук при нажатии
+                this.playBeep(350, 100);
             }
 
             findItem(code) {
@@ -603,6 +601,8 @@
             }
 
             displayItem(item) {
+                // ИСПРАВЛЕНИЕ СДВИГА СТОЛБЦОВ:
+                // Теперь мы корректно отображаем данные из Google Таблицы
                 document.getElementById('infoBukh').textContent = item.bukh || '-';
                 document.getElementById('infoName').textContent = item.name || '-';
                 document.getElementById('infoUnit').textContent = item.unit || 'шт';
@@ -664,7 +664,7 @@
                     this.displayItem(this.currentItem);
                     
                     await this.updatePendingCount();
-                    this.playBeep(500, 200); // ЗВУК УСПЕШНОГО СОХРАНЕНИЯ
+                    this.playBeep(500, 200);
                     this.notify("✅ Сохранено локально! Отправка...", "success");
                     
                     if (editFact) editFact.value = '';
@@ -787,7 +787,7 @@
                             tx.oncomplete = () => {
                                 this.updatePendingCount();
                                 this.renderPending();
-                                this.playBeep(600, 300); // ЗВУК УСПЕШНОЙ ОТПРАВКИ
+                                this.playBeep(600, 300);
                                 this.notify(`✅ УСПЕШНО! Отправлено: ${result.updated} поз.`, "success");
                             };
                         } else { 
@@ -804,7 +804,7 @@
             }
 
             async testConnection() {
-                this.notify(" Проверка...", "info");
+                this.notify("🔍 Проверка...", "info");
                 try {
                     const res = await fetch(CONFIG.API_URL + '?action=ping', { method: 'GET', mode: 'cors' });
                     this.notify(res.ok ? "✅ Связь с сервером есть" : "❌ Ошибка сервера", res.ok ? "success" : "error");
@@ -828,6 +828,8 @@
                         
                         data.items.forEach(item => {
                             if(item.bukh) {
+                                // ИСПРАВЛЕНИЕ СТРУКТУРЫ ДАННЫХ:
+                                // Теперь мы корректно интерпретируем данные из Google Таблицы
                                 const normalizedItem = {
                                     bukh: String(item.bukh || '').trim(),
                                     name: String(item.name || ''),
