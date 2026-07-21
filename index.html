@@ -7,391 +7,76 @@
     <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
     <style>
         :root {
-            --primary: #4CAF50;
-            --primary-dark: #388E3C;
-            --primary-light: #81C784;
-            --accent: #2196F3;
-            --success: #4CAF50;
-            --danger: #F44336;
-            --warning: #FF9800;
-            --bg: #F5F5F5;
-            --card: #FFFFFF;
-            --text: #212121;
-            --text-secondary: #757575;
-            --border: #E0E0E0;
-            --header-bg: #4CAF50;
+            --primary: #4CAF50; --primary-dark: #388E3C; --primary-light: #81C784;
+            --success: #4CAF50; --danger: #F44336; --warning: #FF9800;
+            --bg: #F5F5F5; --card: #FFFFFF; --text: #212121; --text-secondary: #757575; --border: #E0E0E0;
         }
+        * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; padding-bottom: 70px; font-size: 14px; overflow-x: hidden; }
         
-        * { 
-            margin: 0; 
-            padding: 0; 
-            box-sizing: border-box; 
-            -webkit-tap-highlight-color: transparent; 
-        }
-        
-        body { 
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif; 
-            background: var(--bg); 
-            color: var(--text); 
-            min-height: 100vh; 
-            padding-bottom: 70px;
-            font-size: 14px;
-            overflow-x: hidden;
-        }
-        
-        .header { 
-            background: var(--header-bg); 
-            color: white;
-            padding: 12px 16px; 
-            position: sticky; 
-            top: 0; 
-            z-index: 100;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
-        }
-        
-        .header-top { 
-            display: flex; 
-            justify-content: space-between; 
-            align-items: center; 
-            margin-bottom: 8px; 
-        }
-        
-        .header h1 { 
-            font-size: 18px; 
-            font-weight: 600;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-        
-        .status-bar { 
-            display: flex; 
-            gap: 16px; 
-            font-size: 12px;
-            background: rgba(255,255,255,0.2);
-            padding: 6px 12px;
-            border-radius: 20px;
-        }
-        
-        .status-item { 
-            display: flex; 
-            align-items: center; 
-            gap: 6px; 
-            cursor: pointer;
-        }
-        
-        .status-value { 
-            font-weight: bold; 
-            font-size: 14px;
-        }
+        .header { background: var(--primary); color: white; padding: 12px 16px; position: sticky; top: 0; z-index: 100; box-shadow: 0 2px 4px rgba(0,0,0,0.2); }
+        .header-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
+        .header h1 { font-size: 18px; font-weight: 600; display: flex; align-items: center; gap: 8px; }
+        .status-bar { display: flex; gap: 16px; font-size: 12px; background: rgba(255,255,255,0.2); padding: 6px 12px; border-radius: 20px; }
+        .status-item { display: flex; align-items: center; gap: 6px; cursor: pointer; }
+        .status-value { font-weight: bold; font-size: 14px; }
 
-        .tab-content { 
-            display: none; 
-            padding: 12px; 
-            animation: fadeIn 0.3s; 
-        }
-        .tab-content.active { 
-            display: block; 
-        }
+        .tab-content { display: none; padding: 12px; animation: fadeIn 0.3s; }
+        .tab-content.active { display: block; }
 
-        .card { 
-            background: var(--card); 
-            border-radius: 8px; 
-            padding: 16px; 
-            margin-bottom: 12px;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-            border-left: 4px solid var(--primary);
-        }
-        
-        .card-title { 
-            font-size: 16px; 
-            font-weight: 600; 
-            color: var(--primary-dark);
-            margin-bottom: 12px;
-            padding-bottom: 8px;
-            border-bottom: 2px solid var(--primary-light);
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
+        .card { background: var(--card); border-radius: 8px; padding: 16px; margin-bottom: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); border-left: 4px solid var(--primary); }
+        .card-title { font-size: 16px; font-weight: 600; color: var(--primary-dark); margin-bottom: 12px; padding-bottom: 8px; border-bottom: 2px solid var(--primary-light); display: flex; align-items: center; gap: 8px; }
 
-        .btn { 
-            width: 100%; 
-            padding: 14px; 
-            border: none; 
-            border-radius: 6px; 
-            font-size: 15px; 
-            font-weight: 600; 
-            cursor: pointer; 
-            margin-bottom: 8px;
-            transition: all 0.2s;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 8px;
-        }
-        
+        .btn { width: 100%; padding: 14px; border: none; border-radius: 6px; font-size: 15px; font-weight: 600; cursor: pointer; margin-bottom: 8px; transition: all 0.2s; display: flex; align-items: center; justify-content: center; gap: 8px; }
         .btn:active { transform: scale(0.98); }
-        
-        .btn-primary { 
-            background: var(--primary); 
-            color: white;
-            box-shadow: 0 2px 4px rgba(76, 175, 80, 0.3);
-        }
-        
-        .btn-success { 
-            background: var(--success); 
-            color: white;
-            box-shadow: 0 2px 4px rgba(76, 175, 80, 0.3);
-        }
-        
-        .btn-danger { 
-            background: var(--danger); 
-            color: white; 
-        }
-        
-        .btn-outline { 
-            background: transparent; 
-            border: 2px solid var(--primary); 
-            color: var(--primary);
-        }
-        
-        .btn-row { 
-            display: flex; 
-            gap: 8px; 
-        }
-        .btn-row .btn { 
-            flex: 1;
-            margin-bottom: 0; 
-        }
+        .btn-primary { background: var(--primary); color: white; box-shadow: 0 2px 4px rgba(76, 175, 80, 0.3); }
+        .btn-success { background: var(--success); color: white; box-shadow: 0 2px 4px rgba(76, 175, 80, 0.3); }
+        .btn-danger { background: var(--danger); color: white; }
+        .btn-outline { background: transparent; border: 2px solid var(--primary); color: var(--primary); }
+        .btn-row { display: flex; gap: 8px; }
+        .btn-row .btn { flex: 1; margin-bottom: 0; }
 
-        .scanner-container { 
-            background: #000; 
-            border-radius: 8px; 
-            overflow: hidden; 
-            margin-bottom: 12px; 
-            min-height: 250px;
-            border: 3px solid var(--primary);
-        }
+        .scanner-container { background: #000; border-radius: 8px; overflow: hidden; margin-bottom: 12px; min-height: 250px; border: 3px solid var(--primary); }
         #reader { width: 100%; }
 
-        .input-group { 
-            display: flex; 
-            gap: 8px; 
-            margin-bottom: 12px; 
-        }
+        .input-group { display: flex; gap: 8px; margin-bottom: 12px; }
+        .input-group input { flex: 1; padding: 12px; border: 2px solid var(--border); border-radius: 6px; font-size: 16px; background: white; }
+        .input-group input:focus { outline: none; border-color: var(--primary); }
         
-        .input-group input { 
-            flex: 1; 
-            padding: 12px; 
-            border: 2px solid var(--border); 
-            border-radius: 6px; 
-            font-size: 16px;
-            background: white;
-        }
-        
-        .input-group input:focus {
-            outline: none;
-            border-color: var(--primary);
-        }
-        
-        .form-group { 
-            margin-bottom: 12px; 
-        }
-        
-        .form-group label { 
-            display: block; 
-            margin-bottom: 6px; 
-            font-weight: 600; 
-            font-size: 13px; 
-            color: var(--text-secondary);
-        }
-        
-        .form-group input, 
-        .form-group textarea { 
-            width: 100%; 
-            padding: 12px; 
-            border: 2px solid var(--border); 
-            border-radius: 6px; 
-            font-size: 16px;
-            background: white;
-        }
-        
-        .form-group input:focus,
-        .form-group textarea:focus {
-            outline: none;
-            border-color: var(--primary);
-        }
+        .form-group { margin-bottom: 12px; }
+        .form-group label { display: block; margin-bottom: 6px; font-weight: 600; font-size: 13px; color: var(--text-secondary); }
+        .form-group input, .form-group textarea { width: 100%; padding: 12px; border: 2px solid var(--border); border-radius: 6px; font-size: 16px; background: white; }
+        .form-group input:focus, .form-group textarea:focus { outline: none; border-color: var(--primary); }
 
-        .item-info { 
-            display: none; 
-            background: linear-gradient(135deg, #f5f5f5 0%, #ffffff 100%);
-            border: 2px solid var(--primary-light);
-        }
+        .item-info { display: none; background: linear-gradient(135deg, #f5f5f5 0%, #ffffff 100%); border: 2px solid var(--primary-light); }
         .item-info.show { display: block; }
-        
-        .info-grid { 
-            display: grid; 
-            grid-template-columns: 1fr 1fr; 
-            gap: 12px; 
-            margin-bottom: 16px; 
-        }
-        
-        .info-row { 
-            background: white; 
-            padding: 12px; 
-            border-radius: 6px; 
-            border: 1px solid var(--border);
-            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
-        }
-        
-        .info-row.full { 
-            grid-column: 1 / -1; 
-        }
-        
-        .info-label { 
-            font-size: 11px; 
-            color: var(--text-secondary); 
-            text-transform: uppercase; 
-            margin-bottom: 4px;
-            font-weight: 600;
-        }
-        
-        .info-value { 
-            font-size: 16px; 
-            font-weight: 500; 
-            word-break: break-word;
-            color: var(--text);
-        }
-        
-        .info-value.highlight { 
-            color: var(--success); 
-            font-weight: bold; 
-            font-size: 20px;
-        }
+        .info-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 16px; }
+        .info-row { background: white; padding: 12px; border-radius: 6px; border: 1px solid var(--border); box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
+        .info-row.full { grid-column: 1 / -1; }
+        .info-label { font-size: 11px; color: var(--text-secondary); text-transform: uppercase; margin-bottom: 4px; font-weight: 600; }
+        .info-value { font-size: 16px; font-weight: 500; word-break: break-word; color: var(--text); }
+        .info-value.highlight { color: var(--success); font-weight: bold; font-size: 20px; }
 
-        .bottom-nav { 
-            position: fixed; 
-            bottom: 0; 
-            left: 0; 
-            right: 0; 
-            background: white; 
-            border-top: 2px solid var(--primary);
-            display: flex; 
-            justify-content: space-around; 
-            padding: 8px 0;
-            box-shadow: 0 -2px 10px rgba(0,0,0,0.1); 
-            z-index: 100;
-        }
-        
-        .nav-item { 
-            display: flex; 
-            flex-direction: column; 
-            align-items: center; 
-            color: var(--text-secondary); 
-            text-decoration: none; 
-            font-size: 11px;
-            padding: 4px 16px; 
-            border-radius: 8px; 
-            cursor: pointer;
-            transition: all 0.2s;
-            position: relative;
-        }
-        
-        .nav-item.active { 
-            color: var(--primary); 
-            background: rgba(76, 175, 80, 0.1);
-        }
-        
-        .nav-icon { 
-            font-size: 22px; 
-            margin-bottom: 4px; 
-        }
-        
-        .nav-badge { 
-            position: absolute; 
-            top: 0px; 
-            right: 8px; 
-            background: var(--danger); 
-            color: white; 
-            font-size: 10px; 
-            padding: 2px 6px; 
-            border-radius: 10px; 
-            font-weight: bold;
-        }
+        .bottom-nav { position: fixed; bottom: 0; left: 0; right: 0; background: white; border-top: 2px solid var(--primary); display: flex; justify-content: space-around; padding: 8px 0; box-shadow: 0 -2px 10px rgba(0,0,0,0.1); z-index: 100; }
+        .nav-item { display: flex; flex-direction: column; align-items: center; color: var(--text-secondary); text-decoration: none; font-size: 11px; padding: 4px 16px; border-radius: 8px; cursor: pointer; transition: all 0.2s; position: relative; }
+        .nav-item.active { color: var(--primary); background: rgba(76, 175, 80, 0.1); }
+        .nav-icon { font-size: 22px; margin-bottom: 4px; }
+        .nav-badge { position: absolute; top: 0px; right: 8px; background: var(--danger); color: white; font-size: 10px; padding: 2px 6px; border-radius: 10px; font-weight: bold; }
 
-        .notification { 
-            position: fixed; 
-            top: 80px; 
-            left: 50%; 
-            transform: translateX(-50%) translateY(-100px); 
-            padding: 14px 24px; 
-            border-radius: 8px; 
-            color: white; 
-            font-weight: 600; 
-            z-index: 1000; 
-            font-size: 14px; 
-            max-width: 90%; 
-            text-align: center; 
-            transition: transform 0.3s;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.2);
-        }
-        
+        .notification { position: fixed; top: 80px; left: 50%; transform: translateX(-50%) translateY(-100px); padding: 14px 24px; border-radius: 8px; color: white; font-weight: 600; z-index: 1000; font-size: 14px; max-width: 90%; text-align: center; transition: transform 0.3s; box-shadow: 0 4px 12px rgba(0,0,0,0.2); }
         .notification.show { transform: translateX(-50%) translateY(0); }
         .notification.success { background: var(--success); }
         .notification.error { background: var(--danger); }
-        .notification.info { background: var(--accent); }
+        .notification.info { background: #2196F3; }
 
-        .list-item { 
-            display: flex; 
-            justify-content: space-between; 
-            align-items: center;
-            padding: 12px; 
-            border-bottom: 1px solid var(--border); 
-            background: white;
-            margin-bottom: 8px;
-            border-radius: 6px;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
-        }
-        
-        .list-main { 
-            font-weight: 600; 
-            color: var(--text); 
-            font-size: 15px;
-        }
-        
-        .list-sub { 
-            font-size: 12px; 
-            color: var(--text-secondary); 
-            margin-top: 4px; 
-        }
-        
-        .list-action { 
-            padding: 6px 12px; 
-            font-size: 12px; 
-            width: auto; 
-            margin: 0; 
-        }
+        .list-item { display: flex; justify-content: space-between; align-items: center; padding: 12px; border-bottom: 1px solid var(--border); background: white; margin-bottom: 8px; border-radius: 6px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
+        .list-main { font-weight: 600; color: var(--text); font-size: 15px; }
+        .list-sub { font-size: 12px; color: var(--text-secondary); margin-top: 4px; }
+        .list-action { padding: 6px 12px; font-size: 12px; width: auto; margin: 0; }
 
-        .debug-panel { 
-            display: none; 
-            margin-top: 12px; 
-            padding: 10px; 
-            background: #1e1e1e; 
-            color: #00ff00; 
-            font-family: monospace; 
-            font-size: 11px; 
-            border-radius: 6px; 
-            max-height: 150px; 
-            overflow-y: auto; 
-        }
+        .debug-panel { display: none; margin-top: 12px; padding: 10px; background: #1e1e1e; color: #00ff00; font-family: monospace; font-size: 11px; border-radius: 6px; max-height: 150px; overflow-y: auto; }
         .debug-panel.show { display: block; }
-
-        @keyframes fadeIn { 
-            from { opacity: 0; transform: translateY(10px); } 
-            to { opacity: 1; transform: translateY(0); } 
-        }
-        
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
         .text-center { text-align: center; }
         .mt-2 { margin-top: 12px; }
     </style>
@@ -400,16 +85,10 @@
 
     <div class="header">
         <div class="header-top">
-            <h1> QR Сканер СМР</h1>
+            <h1>📱 QR Сканер СМР</h1>
             <div class="status-bar">
-                <div class="status-item" onclick="toggleDebug()">
-                    <span class="status-value" id="connStatus">🔍</span> 
-                    <span>Сеть</span>
-                </div>
-                <div class="status-item" onclick="toggleDebug()">
-                    <span class="status-value" id="dbStatus">❌</span> 
-                    <span>База</span>
-                </div>
+                <div class="status-item" onclick="toggleDebug()"><span class="status-value" id="connStatus">🔍</span><span>Сеть</span></div>
+                <div class="status-item" onclick="toggleDebug()"><span class="status-value" id="dbStatus">❌</span><span>База</span></div>
             </div>
         </div>
         <div class="debug-panel" id="debugPanel"></div>
@@ -418,34 +97,20 @@
     <div id="tab-scanner" class="tab-content active">
         <div class="card">
             <div class="card-title">🔄 Синхронизация</div>
-            <button class="btn btn-primary" id="btnDownload" onclick="app.downloadDB()" style="margin-bottom: 8px;">
-                📥 Загрузить базу данных
-            </button>
+            <button class="btn btn-primary" id="btnDownload" onclick="app.downloadDB()" style="margin-bottom: 8px;">📥 Загрузить базу данных</button>
             <div class="btn-row">
-                <button class="btn btn-success" id="btnSync" onclick="app.syncNow()">
-                    📤 Отправить (0)
-                </button>
-                <button class="btn btn-outline" onclick="app.testConnection()">
-                    🔍 Проверка
-                </button>
+                <button class="btn btn-success" id="btnSync" onclick="app.syncNow()">📤 Отправить (0)</button>
+                <button class="btn btn-outline" onclick="app.testConnection()">🔍 Проверка</button>
             </div>
         </div>
 
         <div class="card">
-            <div class="card-title"> Сканирование</div>
-            <div class="scanner-container">
-                <div id="reader"></div>
-            </div>
+            <div class="card-title">📷 Сканирование</div>
+            <div class="scanner-container"><div id="reader"></div></div>
             <div class="btn-row">
-                <button class="btn btn-primary" onclick="app.startScanner()">
-                    ▶️ Камера
-                </button>
-                <button class="btn btn-outline" onclick="app.toggleFlash()" id="btnFlash">
-                    🔦 Вспышка
-                </button>
-                <button class="btn btn-danger" onclick="app.stopScanner()">
-                    ⏹️ Стоп
-                </button>
+                <button class="btn btn-primary" onclick="app.startScanner()">▶️ Камера</button>
+                <button class="btn btn-outline" onclick="app.toggleFlash()" id="btnFlash">🔦 Вспышка</button>
+                <button class="btn btn-danger" onclick="app.stopScanner()">⏹️ Стоп</button>
             </div>
         </div>
 
@@ -453,72 +118,32 @@
             <div class="card-title">⌨️ Ручной ввод</div>
             <div class="input-group">
                 <input type="text" id="manualCode" placeholder="Введите бух. код..." inputmode="text">
-                <button class="btn btn-primary" style="width: auto; margin: 0;" onclick="app.searchManual()">
-                    🔍
-                </button>
+                <button class="btn btn-primary" style="width: auto; margin: 0;" onclick="app.searchManual()">🔍</button>
             </div>
         </div>
 
         <div class="card item-info" id="itemInfo">
             <div class="card-title">ℹ️ Позиция</div>
-            
             <div class="info-grid">
-                <div class="info-row">
-                    <div class="info-label">БУХ. №</div>
-                    <div class="info-value" id="infoBukh">-</div>
-                </div>
-                <div class="info-row">
-                    <div class="info-label">ЕД. ИЗМ.</div>
-                    <div class="info-value" id="infoUnit">-</div>
-                </div>
-                <div class="info-row full">
-                    <div class="info-label">НАИМЕНОВАНИЕ</div>
-                    <div class="info-value" id="infoName">-</div>
-                </div>
-                <div class="info-row">
-                    <div class="info-label">ОСТАТОК (1С)</div>
-                    <div class="info-value" id="infoBalance">-</div>
-                </div>
-                <div class="info-row">
-                    <div class="info-label">ФАКТ (СМР)</div>
-                    <div class="info-value highlight" id="infoFact">-</div>
-                </div>
+                <div class="info-row"><div class="info-label">БУХ. №</div><div class="info-value" id="infoBukh">-</div></div>
+                <div class="info-row"><div class="info-label">ЕД. ИЗМ.</div><div class="info-value" id="infoUnit">-</div></div>
+                <div class="info-row full"><div class="info-label">НАИМЕНОВАНИЕ</div><div class="info-value" id="infoName">-</div></div>
+                <div class="info-row"><div class="info-label">ОСТАТОК (1С)</div><div class="info-value" id="infoBalance">-</div></div>
+                <div class="info-row"><div class="info-label">ФАКТ (Сканер)</div><div class="info-value highlight" id="infoFact">-</div></div>
             </div>
 
             <div class="card-title" style="margin-top:16px;">✏️ Корректировка</div>
-            
-            <div class="form-group">
-                <label>📦 Фактическое количество:</label>
-                <input type="number" id="editFact" step="0.001" inputmode="decimal">
-            </div>
-            
-            <div class="form-group">
-                <label>📍 Контейнер:</label>
-                <input type="text" id="editContainer" inputmode="text">
-            </div>
-            
-            <div class="form-group">
-                <label>📌 Полка/Место:</label>
-                <input type="text" id="editShelf" inputmode="text">
-            </div>
-            
-            <div class="form-group">
-                <label>📝 Примечание:</label>
-                <textarea id="editNote" rows="2"></textarea>
-            </div>
-            
-            <button class="btn btn-success" onclick="app.saveData()">
-                 Сохранить и отправить
-            </button>
+            <div class="form-group"><label>📦 Фактическое количество:</label><input type="number" id="editFact" step="0.001" inputmode="decimal"></div>
+            <div class="form-group"><label>📍 Контейнер:</label><input type="text" id="editContainer" inputmode="text"></div>
+            <div class="form-group"><label>📌 Полка/Место:</label><input type="text" id="editShelf" inputmode="text"></div>
+            <div class="form-group"><label>📝 Примечание:</label><textarea id="editNote" rows="2"></textarea></div>
+            <button class="btn btn-success" onclick="app.saveData()">💾 Сохранить и отправить</button>
         </div>
     </div>
 
     <div id="tab-history" class="tab-content">
         <div class="card">
-            <div class="card-title" style="display:flex; justify-content:space-between; align-items:center;">
-                 История
-                <button class="btn btn-outline list-action" onclick="app.clearHistory()">️</button>
-            </div>
+            <div class="card-title" style="display:flex; justify-content:space-between; align-items:center;">📋 История <button class="btn btn-outline list-action" onclick="app.clearHistory()">🗑️</button></div>
             <div id="historyList"></div>
         </div>
     </div>
@@ -527,26 +152,14 @@
         <div class="card">
             <div class="card-title">⏳ Очередь отправки</div>
             <div id="pendingList"></div>
-            <button class="btn btn-success mt-2" onclick="app.syncNow()">
-                📤 Отправить все
-            </button>
+            <button class="btn btn-success mt-2" onclick="app.syncNow()">📤 Отправить все на сервер</button>
         </div>
     </div>
 
     <div class="bottom-nav">
-        <div class="nav-item active" onclick="app.switchTab('scanner', this)">
-            <span class="nav-icon">📷</span>
-            <span>Сканер</span>
-        </div>
-        <div class="nav-item" onclick="app.switchTab('history', this)">
-            <span class="nav-icon">📋</span>
-            <span>История</span>
-        </div>
-        <div class="nav-item" onclick="app.switchTab('pending', this)">
-            <span class="nav-icon">📤</span>
-            <span>Очередь</span>
-            <span class="nav-badge" id="navBadge" style="display:none;">0</span>
-        </div>
+        <div class="nav-item active" onclick="app.switchTab('scanner', this)"><span class="nav-icon">📷</span><span>Сканер</span></div>
+        <div class="nav-item" onclick="app.switchTab('history', this)"><span class="nav-icon">📋</span><span>История</span></div>
+        <div class="nav-item" onclick="app.switchTab('pending', this)"><span class="nav-icon">📤</span><span>Очередь</span><span class="nav-badge" id="navBadge" style="display:none;">0</span></div>
     </div>
 
     <div class="notification" id="notification"></div>
@@ -554,7 +167,7 @@
     <script>
         const CONFIG = {
             API_URL: 'https://script.google.com/macros/s/AKfycbxYhU8cPpBx5-iNRcO1HXyxSimhP15W9qQ5BsYka1c6Lvusv4r0J5a5U4H-3cDFgSfP/exec',
-            DB_NAME: 'SMR_QR_DB_v5'
+            DB_NAME: 'SMR_QR_DB_FINAL'
         };
 
         class ScannerApp {
@@ -572,10 +185,7 @@
                 const manualInput = document.getElementById('manualCode');
                 if (manualInput) {
                     manualInput.addEventListener('keypress', (e) => {
-                        if (e.key === 'Enter') { 
-                            e.preventDefault(); 
-                            this.searchManual(); 
-                        }
+                        if (e.key === 'Enter') { e.preventDefault(); this.searchManual(); }
                     });
                 }
             }
@@ -594,25 +204,16 @@
                 if (!el) return;
                 el.textContent = msg;
                 el.className = `notification show ${type}`;
-                setTimeout(() => el.classList.remove('show'), 3000);
+                setTimeout(() => el.classList.remove('show'), 4000);
             }
 
             switchTab(tabName, navElement) {
-                document.querySelectorAll('.tab-content').forEach(el => {
-                    el.classList.remove('active');
-                });
-                
+                document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
                 const targetTab = document.getElementById(`tab-${tabName}`);
-                if (targetTab) {
-                    targetTab.classList.add('active');
-                }
+                if (targetTab) targetTab.classList.add('active');
                 
-                document.querySelectorAll('.nav-item').forEach(el => {
-                    el.classList.remove('active');
-                });
-                if (navElement) {
-                    navElement.classList.add('active');
-                }
+                document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
+                if (navElement) navElement.classList.add('active');
                 
                 if (tabName === 'history') this.renderHistory();
                 if (tabName === 'pending') this.renderPending();
@@ -620,14 +221,12 @@
             }
 
             async init() {
-                this.log("Запуск приложения v5.0...");
+                this.log("Запуск приложения...");
                 this.updateNetworkStatus(this.isOnline);
-                
                 if (window.location.protocol === 'file:') {
                     this.notify("⚠️ Откройте через GitHub Pages!", "error");
                     return;
                 }
-                
                 try {
                     await this.initDB();
                     await this.updatePendingCount();
@@ -639,23 +238,16 @@
 
             async initDB() {
                 return new Promise((resolve, reject) => {
-                    const request = indexedDB.open(CONFIG.DB_NAME, 3);
-                    
+                    const request = indexedDB.open(CONFIG.DB_NAME, 4);
                     request.onerror = (e) => reject(e.target.error);
-                    
                     request.onsuccess = (e) => {
                         this.db = e.target.result;
                         this.updateDBStatus().then(resolve);
                     };
-                    
                     request.onupgradeneeded = (e) => {
                         const db = e.target.result;
-                        if (!db.objectStoreNames.contains('items')) {
-                            db.createObjectStore('items', { keyPath: 'bukh' });
-                        }
-                        if (!db.objectStoreNames.contains('pending')) {
-                            db.createObjectStore('pending', { keyPath: 'id', autoIncrement: true });
-                        }
+                        if (!db.objectStoreNames.contains('items')) db.createObjectStore('items', { keyPath: 'bukh' });
+                        if (!db.objectStoreNames.contains('pending')) db.createObjectStore('pending', { keyPath: 'id', autoIncrement: true });
                         if (!db.objectStoreNames.contains('history')) {
                             const hStore = db.createObjectStore('history', { keyPath: 'id', autoIncrement: true });
                             hStore.createIndex('timestamp', 'timestamp', { unique: false });
@@ -666,9 +258,7 @@
 
             async updateDBStatus() {
                 if (!this.db) return;
-                const req = this.db.transaction(['items'], 'readonly')
-                    .objectStore('items').count();
-                
+                const req = this.db.transaction(['items'], 'readonly').objectStore('items').count();
                 req.onsuccess = () => {
                     const el = document.getElementById('dbStatus');
                     if (el) {
@@ -689,7 +279,6 @@
 
             startScanner() {
                 if (this.html5QrCode && this.html5QrCode.isScanning) return;
-                
                 this.html5QrCode = new Html5Qrcode("reader");
                 this.html5QrCode.start(
                     { facingMode: "environment" },
@@ -721,28 +310,18 @@
             }
 
             async toggleFlash() {
-                if (!this.videoTrack) { 
-                    this.notify("️ Запустите камеру", "error"); 
-                    return; 
-                }
-                
+                if (!this.videoTrack) { this.notify("⚠️ Запустите камеру", "error"); return; }
                 try {
                     const capabilities = this.videoTrack.getCapabilities();
                     if (capabilities.torch) {
                         this.isTorchOn = !this.isTorchOn;
-                        await this.videoTrack.applyConstraints({ 
-                            advanced: [{ torch: this.isTorchOn }] 
-                        });
+                        await this.videoTrack.applyConstraints({ advanced: [{ torch: this.isTorchOn }] });
                         const btn = document.getElementById('btnFlash');
-                        if (btn) {
-                            btn.textContent = this.isTorchOn ? '💡 Выкл' : '🔦 Вспышка';
-                        }
+                        if (btn) btn.textContent = this.isTorchOn ? '💡 Выкл' : '🔦 Вспышка';
                     } else {
                         this.notify("⚠️ Вспышка не поддерживается", "error");
                     }
-                } catch (err) { 
-                    this.notify(" Ошибка вспышки", "error"); 
-                }
+                } catch (err) { this.notify("❌ Ошибка вспышки", "error"); }
             }
 
             async onScanSuccess(code) {
@@ -756,55 +335,38 @@
             async searchManual() {
                 const input = document.getElementById('manualCode');
                 const code = input ? input.value.trim() : '';
-                if (!code) { 
-                    this.notify("⚠️ Введите код", "error"); 
-                    return; 
-                }
+                if (!code) { this.notify("⚠️ Введите код", "error"); return; }
                 await this.processScan(code);
             }
 
             async processScan(code) {
                 this.notify(`🔍 Поиск: ${code}`, "info");
-                
                 try {
                     const item = await this.findItem(code);
                     if (item) {
                         this.currentItem = item;
-                        this.displayItem(item);
+                        this.displayItem(item); // <-- ВОТ ЗДЕСЬ ВЫЗЫВАЕТСЯ ФУНКЦИЯ ОТОБРАЖЕНИЯ
                         await this.addToHistory(code, item.name);
                         this.notify("✅ Найдено: " + (item.name ? item.name.substring(0, 30) : ''), "success");
                         setTimeout(() => {
                             const editFact = document.getElementById('editFact');
-                            if (editFact) {
-                                editFact.value = '';
-                                editFact.focus();
-                            }
+                            if (editFact) { editFact.value = ''; editFact.focus(); }
                             const itemInfo = document.getElementById('itemInfo');
-                            if (itemInfo) {
-                                itemInfo.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                            }
+                            if (itemInfo) itemInfo.scrollIntoView({ behavior: 'smooth', block: 'center' });
                         }, 300);
                     } else {
-                        this.notify(`️ Не найдено: ${code}`, "error");
+                        this.notify(`⚠️ Не найдено: ${code}`, "error");
                         const itemInfo = document.getElementById('itemInfo');
                         if (itemInfo) itemInfo.classList.remove('show');
                         await this.addToHistory(code, "Не найдено");
                     }
-                } catch (e) { 
-                    this.log(`Ошибка: ${e.message}`, "error"); 
-                }
+                } catch (e) { this.log(`Ошибка: ${e.message}`, "error"); }
             }
 
             findItem(code) {
                 return new Promise((resolve) => {
-                    if (!this.db) {
-                        resolve(null);
-                        return;
-                    }
-                    
-                    const req = this.db.transaction(['items'], 'readonly')
-                        .objectStore('items').getAll();
-                    
+                    if (!this.db) { resolve(null); return; }
+                    const req = this.db.transaction(['items'], 'readonly').objectStore('items').getAll();
                     req.onsuccess = () => {
                         const cleanCode = String(code).trim().replace(/^0+/, '');
                         const found = req.result.find(item => {
@@ -814,48 +376,33 @@
                         });
                         resolve(found || null);
                     };
-                    
                     req.onerror = () => resolve(null);
                 });
             }
 
+            // === ВОТ ЭТА ФУНКЦИЯ ОТВЕЧАЕТ ЗА ПРАВИЛЬНОЕ ОТОБРАЖЕНИЕ ДАННЫХ ===
             displayItem(item) {
-                // Исправленное отображение данных
-                const fields = {
-                    'infoBukh': item.bukh || '-',
-                    'infoName': item.name || '-',
-                    'infoUnit': item.unit || 'шт',
-                    'infoBalance': item.balance !== undefined && item.balance !== null ? 
-                        Number(item.balance).toFixed(3) : '0.000',
-                    'infoFact': item.fact !== undefined && item.fact !== null ? 
-                        Number(item.fact).toFixed(3) : '0.000',
-                    'editFact': item.fact || '',
-                    'editContainer': item.container || '',
-                    'editShelf': item.shelf || '',
-                    'editNote': item.note || ''
-                };
+                document.getElementById('infoBukh').textContent = item.bukh || '-';
+                document.getElementById('infoName').textContent = item.name || '-';
+                document.getElementById('infoUnit').textContent = item.unit || 'шт';
                 
-                for (const [id, value] of Object.entries(fields)) {
-                    const el = document.getElementById(id);
-                    if (el) {
-                        if (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA') {
-                            el.value = value;
-                        } else {
-                            el.textContent = value;
-                        }
-                    }
-                }
+                document.getElementById('infoBalance').textContent = 
+                    (item.balance !== null && item.balance !== undefined) ? Number(item.balance).toFixed(3) : '0.000';
+                document.getElementById('infoFact').textContent = 
+                    (item.fact !== null && item.fact !== undefined) ? Number(item.fact).toFixed(3) : '0.000';
                 
-                const itemInfo = document.getElementById('itemInfo');
-                if (itemInfo) itemInfo.classList.add('show');
+                document.getElementById('editFact').value = (item.fact !== null && item.fact !== undefined) ? item.fact : '';
+                document.getElementById('editContainer').value = item.container || '';
+                document.getElementById('editShelf').value = item.shelf || '';
+                document.getElementById('editNote').value = item.note || '';
                 
-                this.log(`Отображен товар: ${item.bukh} - ${item.name}`, "success");
+                document.getElementById('itemInfo').classList.add('show');
+                this.log(`Отображен: ${item.bukh} | Факт: ${item.fact} | Контейнер: ${item.container}`, "success");
             }
 
             async saveData() {
                 if (!this.currentItem || !this.currentItem.bukh) { 
-                    this.notify("⚠️ Сначала найдите товар", "error"); 
-                    return; 
+                    this.notify("⚠️ Сначала найдите товар", "error"); return; 
                 }
                 
                 const editFact = document.getElementById('editFact');
@@ -868,10 +415,7 @@
                 const shelf = editShelf ? editShelf.value.trim() : '';
                 const note = editNote ? editNote.value.trim() : '';
                 
-                // Проверяем, что факт введен
-                if (fact === 0 && !confirm('Фактическое количество = 0. Продолжить?')) {
-                    return;
-                }
+                if (fact === 0 && !confirm('Фактическое количество = 0. Продолжить?')) return;
                 
                 const change = {
                     code: this.currentItem.bukh,
@@ -884,28 +428,17 @@
                 };
 
                 try {
-                    // Добавляем в очередь
-                    const tx = this.db.transaction(['pending'], 'readwrite');
-                    tx.objectStore('pending').add(change);
+                    this.db.transaction(['pending'], 'readwrite').objectStore('pending').add(change);
                     
-                    // Обновляем локальную базу
-                    const store = this.db.transaction(['items'], 'readwrite')
-                        .objectStore('items');
-                    const updatedItem = { 
-                        ...this.currentItem, 
-                        fact: fact,
-                        container: container, 
-                        shelf: shelf, 
-                        note: note 
-                    };
+                    const store = this.db.transaction(['items'], 'readwrite').objectStore('items');
+                    const updatedItem = { ...this.currentItem, fact: fact, container: container, shelf: shelf, note: note };
                     store.put(updatedItem);
                     this.currentItem = updatedItem;
                     this.displayItem(this.currentItem);
                     
                     await this.updatePendingCount();
-                    this.notify("✅ Сохранено! Отправка...", "success");
+                    this.notify("✅ Сохранено локально! Отправка...", "success");
                     
-                    // Очищаем форму
                     if (editFact) editFact.value = '';
                     if (editContainer) editContainer.value = '';
                     if (editShelf) editShelf.value = '';
@@ -913,12 +446,8 @@
                     const manualCode = document.getElementById('manualCode');
                     if (manualCode) manualCode.value = '';
                     
-                    // Авто-отправка если есть сеть
-                    if (this.isOnline) {
-                        setTimeout(() => this.syncNow(), 500);
-                    } else {
-                        this.notify("💾 Сохранено (нет сети)", "info");
-                    }
+                    if (this.isOnline) setTimeout(() => this.syncNow(), 500);
+                    else this.notify("💾 Сохранено (нет сети)", "info");
                 } catch (e) { 
                     this.log(`Ошибка сохранения: ${e.message}`, "error");
                     this.notify("❌ Ошибка сохранения", "error"); 
@@ -927,133 +456,87 @@
 
             async addToHistory(code, name) {
                 const tx = this.db.transaction(['history'], 'readwrite');
-                tx.objectStore('history').add({ 
-                    code, 
-                    name: name || 'Неизвестно', 
-                    timestamp: Date.now() 
-                });
-                
+                tx.objectStore('history').add({ code, name: name || 'Неизвестно', timestamp: Date.now() });
                 const req = tx.objectStore('history').getAll();
                 req.onsuccess = () => {
                     if (req.result && req.result.length > 100) {
                         const toDelete = req.result.slice(0, req.result.length - 100);
                         const delTx = this.db.transaction(['history'], 'readwrite');
-                        toDelete.forEach(item => 
-                            delTx.objectStore('history').delete(item.id)
-                        );
+                        toDelete.forEach(item => delTx.objectStore('history').delete(item.id));
                     }
                 };
             }
 
             renderHistory() {
-                const req = this.db.transaction(['history'], 'readonly')
-                    .objectStore('history').getAll();
-                
+                const req = this.db.transaction(['history'], 'readonly').objectStore('history').getAll();
                 req.onsuccess = () => {
-                    const records = (req.result || [])
-                        .sort((a, b) => b.timestamp - a.timestamp)
-                        .slice(0, 50);
-                    
+                    const records = (req.result || []).sort((a, b) => b.timestamp - a.timestamp).slice(0, 50);
                     const container = document.getElementById('historyList');
                     if (!container) return;
-                    
-                    if (records.length === 0) {
-                        container.innerHTML = '<div class="text-center" style="padding:20px; color:#999;">Пусто</div>';
-                        return;
-                    }
-                    
+                    if (records.length === 0) { container.innerHTML = '<div class="text-center" style="padding:20px; color:#999;">Пусто</div>'; return; }
                     container.innerHTML = records.map(item => {
                         const d = new Date(item.timestamp);
-                        return `<div class="list-item">
-                            <div>
-                                <div class="list-main">${item.code}</div>
-                                <div class="list-sub">${item.name} • ${d.toLocaleTimeString()}</div>
-                            </div>
-                        </div>`;
+                        return `<div class="list-item"><div><div class="list-main">${item.code}</div><div class="list-sub">${item.name} • ${d.toLocaleTimeString()}</div></div></div>`;
                     }).join('');
                 };
             }
 
             clearHistory() {
                 if (!confirm('Очистить историю?')) return;
-                this.db.transaction(['history'], 'readwrite')
-                    .objectStore('history').clear();
+                this.db.transaction(['history'], 'readwrite').objectStore('history').clear();
                 this.renderHistory();
                 this.notify("🗑️ Очищено", "info");
             }
 
             async renderPending() {
-                const req = this.db.transaction(['pending'], 'readonly')
-                    .objectStore('pending').getAll();
-                
+                const req = this.db.transaction(['pending'], 'readonly').objectStore('pending').getAll();
                 req.onsuccess = () => {
                     const changes = (req.result || []).filter(c => !c.synced);
                     const container = document.getElementById('pendingList');
                     if (!container) return;
-                    
-                    if (changes.length === 0) {
-                        container.innerHTML = '<div class="text-center" style="padding:20px; color:#999;">Пусто</div>';
-                        return;
-                    }
-                    
+                    if (changes.length === 0) { container.innerHTML = '<div class="text-center" style="padding:20px; color:#999;">Пусто</div>'; return; }
                     container.innerHTML = changes.map(c => {
                         const d = new Date(c.timestamp);
-                        return `<div class="list-item">
-                            <div>
-                                <div class="list-main">${c.code} | Факт: ${c.fact}</div>
-                                <div class="list-sub">${c.container || '-'} • ${d.toLocaleString()}</div>
-                            </div>
-                            <button class="btn btn-danger list-action" onclick="app.deletePending(${c.id})">✕</button>
-                        </div>`;
+                        return `<div class="list-item"><div><div class="list-main">${c.code} | Факт: ${c.fact}</div><div class="list-sub">${c.container || '-'} • ${d.toLocaleString()}</div></div><button class="btn btn-danger list-action" onclick="app.deletePending(${c.id})">✕</button></div>`;
                     }).join('');
                 };
             }
 
             async deletePending(id) {
-                this.db.transaction(['pending'], 'readwrite')
-                    .objectStore('pending').delete(id);
+                this.db.transaction(['pending'], 'readwrite').objectStore('pending').delete(id);
                 this.updatePendingCount();
                 this.renderPending();
                 this.notify("Удалено", "info");
             }
 
             async updatePendingCount() {
-                const req = this.db.transaction(['pending'], 'readonly')
-                    .objectStore('pending').getAll();
-                
+                const req = this.db.transaction(['pending'], 'readonly').objectStore('pending').getAll();
                 req.onsuccess = () => {
                     const count = (req.result || []).filter(c => !c.synced).length;
                     const badge = document.getElementById('navBadge');
                     const btnSync = document.getElementById('btnSync');
-                    
-                    if (badge) {
-                        badge.textContent = count;
-                        badge.style.display = count > 0 ? 'block' : 'none';
-                    }
-                    
-                    if (btnSync) {
-                        btnSync.innerHTML = `📤 Отправить (${count})`;
-                    }
+                    if (badge) { badge.textContent = count; badge.style.display = count > 0 ? 'block' : 'none'; }
+                    if (btnSync) btnSync.innerHTML = `📤 Отправить (${count})`;
                 };
             }
 
+            // === ПРОВЕРКА УСПЕШНОЙ ОТПРАВКИ ===
             async syncNow() {
-                if (!this.isOnline) { 
-                    this.notify("🔴 Нет сети", "error"); 
-                    return; 
-                }
+                if (!this.isOnline) { this.notify("🔴 Нет сети", "error"); return; }
                 
-                this.notify('⏳ Отправка...', 'info');
+                const btn = document.getElementById('btnSync');
+                const originalText = btn.innerHTML;
+                btn.disabled = true;
+                btn.innerHTML = '⏳ Отправка...';
+                this.notify('⏳ Отправка данных на сервер...', 'info');
                 
                 try {
-                    const req = this.db.transaction(['pending'], 'readonly')
-                        .objectStore('pending').getAll();
-                    
+                    const req = this.db.transaction(['pending'], 'readonly').objectStore('pending').getAll();
                     req.onsuccess = async () => {
                         const changes = (req.result || []).filter(c => !c.synced);
-                        
                         if (changes.length === 0) { 
                             this.notify("✅ Нечего отправлять", "success"); 
+                            btn.disabled = false; btn.innerHTML = originalText;
                             return; 
                         }
                         
@@ -1069,7 +552,8 @@
                         const result = await response.json();
                         this.log(`Ответ сервера: ${JSON.stringify(result)}`, "info");
                         
-                        if (result.success) {
+                        // ПРОВЕРКА: успех И количество обновленных записей > 0
+                        if (result.success && result.updated > 0) {
                             const tx = this.db.transaction(['pending'], 'readwrite');
                             const store = tx.objectStore('pending');
                             changes.forEach(c => store.delete(c.id));
@@ -1077,42 +561,36 @@
                             tx.oncomplete = () => {
                                 this.updatePendingCount();
                                 this.renderPending();
-                                this.notify(`✅ Отправлено ${changes.length} изм.`, "success");
+                                this.notify(`✅ УСПЕШНО! Отправлено и сохранено на сервере: ${result.updated} поз.`, "success");
                             };
                         } else { 
-                            throw new Error(result.error || 'Ошибка сервера'); 
+                            throw new Error(result.error || 'Сервер не подтвердил обновление'); 
                         }
                     };
                 } catch (err) { 
                     this.log(`Ошибка синхронизации: ${err.message}`, "error");
-                    this.notify(` ${err.message}`, "error"); 
+                    this.notify(`❌ Ошибка отправки: ${err.message}`, "error"); 
+                } finally {
+                    btn.disabled = false;
+                    btn.innerHTML = originalText;
                 }
             }
 
             async testConnection() {
                 this.notify("🔍 Проверка...", "info");
                 try {
-                    const res = await fetch(CONFIG.API_URL + '?action=ping', { 
-                        method: 'GET', mode: 'cors' 
-                    });
-                    this.notify(res.ok ? "✅ Связь есть" : "❌ Ошибка", res.ok ? "success" : "error");
-                } catch (err) { 
-                    this.notify("❌ Нет связи", "error"); 
-                }
+                    const res = await fetch(CONFIG.API_URL + '?action=ping', { method: 'GET', mode: 'cors' });
+                    this.notify(res.ok ? "✅ Связь с сервером есть" : "❌ Ошибка сервера", res.ok ? "success" : "error");
+                } catch (err) { this.notify("❌ Нет связи", "error"); }
             }
 
             async downloadDB() {
                 const btn = document.getElementById('btnDownload');
-                if (btn) {
-                    btn.disabled = true; 
-                    btn.innerHTML = ' Загрузка...';
-                }
-                
+                if (btn) { btn.disabled = true; btn.innerHTML = '⏳ Загрузка...'; }
                 this.notify('⏳ Загрузка базы...', 'info');
                 
                 try {
                     const res = await fetch(CONFIG.API_URL + '?action=getItems', { mode: 'cors' });
-                    
                     if (!res.ok) throw new Error(`HTTP ${res.status}`);
                     const data = await res.json();
                     
@@ -1120,28 +598,20 @@
                         const tx = this.db.transaction(['items'], 'readwrite');
                         const store = tx.objectStore('items');
                         store.clear();
-                        
-                        data.items.forEach(item => { 
-                            if(item.bukh) {
-                                store.put(item);
-                            }
-                        });
+                        data.items.forEach(item => { if(item.bukh) store.put(item); });
                         
                         tx.oncomplete = () => {
                             this.updateDBStatus();
-                            this.notify(`✅ Загружено ${data.items.length} поз.`, 'success');
+                            this.notify(`✅ Успешно загружено ${data.items.length} позиций`, 'success');
                         };
                     } else {
                         throw new Error(data.error || 'Ошибка данных');
                     }
                 } catch (err) { 
                     this.log(`Ошибка загрузки: ${err.message}`, "error");
-                    this.notify(` ${err.message}`, "error"); 
+                    this.notify(`❌ ${err.message}`, "error"); 
                 } finally { 
-                    if (btn) {
-                        btn.disabled = false; 
-                        btn.innerHTML = ' Загрузить базу'; 
-                    }
+                    if (btn) { btn.disabled = false; btn.innerHTML = '📥 Загрузить базу данных'; }
                 }
             }
         }
@@ -1151,9 +621,7 @@
 
         function toggleDebug() {
             const panel = document.getElementById('debugPanel');
-            if (panel) {
-                panel.classList.toggle('show');
-            }
+            if (panel) panel.classList.toggle('show');
         }
     </script>
 </body>
